@@ -45,15 +45,15 @@ Finally, each player can buy inventory items using the gold they get from killin
 match_csv, player_rating_csv and players_csv are the 3 most important csv files. 
 
 match_csv contains high level information about each match including duration, time to first blood, status of tower and barracks of two teams at end of game, geographical region where the game is taking place and the team that won the game (radiant or dire).
-```{r match_csv}
+```{r match_csv, echo=FALSE}
 head(match_csv)
 ```
 player_ratings_csv has information about all the different human players that were a part of the 50,000 games. The information includes player account_id, total games they have played, total games in which they were a part of the winning team, mean of player skill and standard deviation of player skill. Player skill level and their standard deviation have been calculated by Dota fans, with no involvement from Valve Corporation. So, these 2 columns have to be cross checked for accuracy.
-```{r player_ratings_csv,echo=FALSE}
+```{r player_ratings_csv, echo=FALSE}
 head(player_ratings_csv)
 ```
 players_csv has specific information about each match, player account_id that participated in the match, hero_id of the hero used by the player, gold earned and spent, xp earned, deaths, kills, assists, stuns and last hits per hero. It also gives detailed information about gold extracted from killing creeps, killing other heroes and destroying buildings.  
-```{r players_csv,echo=FALSE}
+```{r players_csv, echo=FALSE}
 head(players_csv)
 ```
 
@@ -99,24 +99,7 @@ Human players that have played less than 5 games of Dota are poor predictors of 
 
 ## Hero Stats
 players_csv has detailed information about the player, the hero they chose and their in-game performance. This information is grouped by hero class, which are STR/INT/AGI. Further, all stats are normalized such that a particular stat of STR hero plus AGI hero plus INT hero equals zero. This operation allows us to view all stats on a single heatmap. The code and the heatmap is shown below
-```{r players_csv}
-# Calculate total stats by hero type
-
-Stats_by_hero_type <- na.omit(players_csv) %>% group_by(Class) %>% summarise(Total_Damage = sum(hero_damage),Total_Healing = sum(hero_healing),Total_Kills = sum(kills),Total_Deaths = sum(deaths),Total_Assists = sum(assists),Total_Tower_Damage = sum(tower_damage),Total_Gold_Spent = sum(gold_spent,na.rm=TRUE),Last_Hits = sum(last_hits),Total_Stuns=sum(stuns),Mean_XP_Per_Min=mean(xp_per_min),Mean_Gold_Per_Min=mean(gold_per_min),Runes_Picked=sum(unit_order_pickup_rune,na.rm=TRUE))
-
-# Scale all observations so that sum of columns equals 1. This helps normalize values
-
-Scaled_Stats_by_hero_type <- Stats_by_hero_type
-
-Scaled_Stats_by_hero_type <- sapply(Scaled_Stats_by_hero_type[,-1],function(x) round(x/sum(x),2))
-
-Class <- c("AGI","INT","STR")
-
-row.names(Scaled_Stats_by_hero_type) <- Class
-
-# Visualize scaled stats using heatmap so that reader gets complete picture of hero stats from single graph
-
-Scaled_Stats_by_hero_type_m <- melt(Scaled_Stats_by_hero_type)
+```{r players_csv,echo=FALSE}
 
 ggplot(Scaled_Stats_by_hero_type_m, aes(x=Var1,y=Var2,fill=value)) + geom_tile() + labs(x="Type of Hero",y="Stats") + scale_fill_gradient(low="white",high="red")
 
@@ -126,7 +109,7 @@ While total_wins is available for each account_id, simply looking at total_wins 
 
 Using this metric, we plot a histogram of percentage of wins. Highest occurence of percentage_wins is 0.5, showing that maximum players win half their games.
 
-```{r players_ratings_csv2}
+```{r players_ratings_csv2, echo=FALSE}
 # Histogram line plot of percentage_wins statistic by player account_id. Most players win half of the games they play.
 
 ggplot(players_ratings_csv2,aes(percentage_wins)) +geom_histogram(aes(y=..density..)) + geom_density(aes(y=..density..))
@@ -136,7 +119,7 @@ ggplot(players_ratings_csv2,aes(percentage_wins)) +geom_histogram(aes(y=..densit
 ## Correlation between trueskill_mu and percentage_wins
 trueskill_mu is a fan defined measure of player skill. To check its accuracy, we correlate it with percentage_wins. Graph shows that higher skill level implies higher win percentage. Since player skill is hard to measure, a standard deviation measure of player ability is included. The different colors of the below dots gives the different standard deviations. 
 
-```{r players_ratings_csv2}
+```{r players_ratings_csv2,echo=FALSE}
 # Scatter plot of trueskill_mu and percentage_wins in players_ratings_csv2. trueskill_sigma is assigned to color attribute. Both trueskill attributes are calculated by Dota fans and not by Valve corporation. While trueskill_mu is indicator of player`s ability, with higher value implying better player, trueskill_sigma is the uncertainty in the trueskill_mu measure. As expected, skill and win percentage are correlated. 
 
 ggplot(players_ratings_csv2,aes(x=trueskill_mu,y=percentage_wins,col=trueskill_sigma)) +geom_point() + geom_jitter(shape=1)

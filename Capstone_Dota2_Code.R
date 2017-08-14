@@ -10,7 +10,7 @@ hist(match_csv$game_mode)
 hist(match_csv$negative_votes)
 hist(match_csv$positive_votes)
 
-# Game_mode, negative_votes and positive_votes are of only 1 type. So, these columns can be removed
+# Game_mode, negative_votes and positive_votes are of only 1 type, except gor game_mode, which has 2 (but still not significant). So, these columns can be removed
 match_csv$game_mode <- NULL
 match_csv$negative_votes <- NULL
 match_csv$positive_votes <- NULL
@@ -40,15 +40,17 @@ players_csv$stuns[none_players_stuns] <- 0
 
 # Write function to compute sum of NA`s in different columns of a dataset (Only choose columns that we believe have many NA`s)
 
+function_NA <- function(x){sum(is.na(x))}
+
 players_csv %>% summarise_at(c("xp_other","xp_roshan","gold_killing_roshan","gold_buyback","unit_order_cast_toggle","unit_order_drop_item","unit_order_give_item","unit_order_disassemble_item", "unit_order_cast_toggle", "unit_order_stop", "unit_order_taunt", "unit_order_buyback", "unit_order_glyph", "unit_order_eject_item_from_stash", "unit_order_cast_rune", "unit_order_move_to_direction", "unit_order_patrol", "unit_order_vector_target_position", "unit_order_radar","unit_order_stop", "unit_order_set_item_combine_lock", "unit_order_continue"),function_NA) 
 
-# High NA columns are all columns chosen in above function other than xp_other
+# High NA columns are all columns displayed in above line other than xp_other
 
 High_NA_Columns <- c("xp_roshan","gold_killing_roshan","gold_buyback","unit_order_cast_toggle","unit_order_cast_toggle_auto","unit_order_drop_item","unit_order_give_item","unit_order_disassemble_item", "unit_order_cast_toggle", "unit_order_stop", "unit_order_taunt", "unit_order_buyback", "unit_order_glyph", "unit_order_eject_item_from_stash", "unit_order_cast_rune", "unit_order_move_to_direction", "unit_order_patrol", "unit_order_vector_target_position", "unit_order_radar","unit_order_stop", "unit_order_set_item_combine_lock", "unit_order_continue")
 
 # Nullify all high NA columns so that the dataset is easier to work with
 
-players_csv<-subset(players_csv,,-c(xp_roshan,gold_killing_roshan,gold_buyback,unit_order_cast_toggle,unit_order_cast_toggle_auto,unit_order_drop_item,unit_order_give_item,unit_order_disassemble_item, unit_order_cast_toggle, unit_order_stop, unit_order_taunt, unit_order_buyback, unit_order_glyph, unit_order_eject_item_from_stash, unit_order_cast_rune, unit_order_move_to_direction, unit_order_patrol, unit_order_vector_target_position, unit_order_radar,unit_order_stop, unit_order_set_item_combine_lock, unit_order_continue))
+players_csv <- subset(players_csv,,-c(xp_roshan,gold_killing_roshan,gold_buyback,unit_order_cast_toggle,unit_order_cast_toggle_auto,unit_order_drop_item,unit_order_give_item,unit_order_disassemble_item, unit_order_cast_toggle, unit_order_stop, unit_order_taunt, unit_order_buyback, unit_order_glyph, unit_order_eject_item_from_stash, unit_order_cast_rune, unit_order_move_to_direction, unit_order_patrol, unit_order_vector_target_position, unit_order_radar,unit_order_stop, unit_order_set_item_combine_lock, unit_order_continue))
 
 # Nullify Key column in objectives_csv due to high percentage of NA`s
 
@@ -83,22 +85,35 @@ colnames(players_csv1)[colnames(players_csv1)=="player_slot_new"] <- "player_slo
 
 # This piece of code was reused to convert item_0, item_1, item_2, item_3, item_4 and item_5 columns from item_id to item_name
 
-colnames(players_csv3)[colnames(players_csv3)=="item_5"] <- "item_id"
-players_csv3 <- left_join(players_csv3,item_ids_csv,by="item_id") 
-colnames(players_csv3)[colnames(players_csv3)=="item_name"] <- "item_5"
-players_csv3$item_id <- NULL
+#colnames(players_csv3)[colnames(players_csv3)=="item_5"] <- "item_id"
+#players_csv3 <- left_join(players_csv3,item_ids_csv,by="item_id") 
+#colnames(players_csv3)[colnames(players_csv3)=="item_name"] <- "item_5"
+#players_csv3$item_id <- NULL
+
+# Delete Class.x column that has been created twice in players_csv and players_csv1. Also rename Class.y column to Class
+players_csv$Class.x <- NULL
+players_csv1$Class.x <- NULL
+colnames(players_csv)[colnames(players_csv)=="Class.y"] <- "Class"
+colnames(players_csv1)[colnames(players_csv1)=="Class.y"] <- "Class"
 
 ### Exploratory Data Analysis and Data Visualization using ggplot2
 
 # Calculate total stats by hero type
 
-Stats_by_hero_type <- na.omit(players_csv) %>% group_by(Class) %>% summarise(Total_Damage = sum(hero_damage),Total_Healing = sum(hero_healing),Total_Kills = sum(kills),Total_Deaths = sum(deaths),Total_Assists = sum(assists),Total_Tower_Damage = sum(tower_damage),Total_Gold_Spent = sum(gold_spent,na.rm=TRUE),Last_Hits = sum(last_hits),Total_Stuns=sum(stuns),Mean_XP_Per_Min=mean(xp_per_min),Mean_Gold_Per_Min=mean(gold_per_min),Runes_Picked=sum(unit_order_pickup_rune,na.rm=TRUE))
+players_csv$stuns <- as.numeric(players_csv$stuns)
+
+Stats_by_hero_type <- players_csv %>% group_by(Class) %>% summarise(Total_Damage = sum(hero_damage,na.rm=TRUE),Total_Healing = sum(hero_healing),Total_Kills = sum(kills),Total_Deaths = sum(deaths),Total_Assists = sum(assists),Total_Tower_Damage = sum(tower_damage),Total_Gold_Spent = sum(gold_spent,na.rm=TRUE),Last_Hits = sum(last_hits),Total_Stuns=sum(stuns),Mean_XP_Per_Min=mean(xp_per_min),Mean_Gold_Per_Min=mean(gold_per_min),Runes_Picked=sum(unit_order_pickup_rune,na.rm=TRUE))
+
+Stats_by_hero_type <- Stats_by_hero_type[-c(4),]
+Stats_by_hero_type$Total_Gold_Spent <- NULL
 
 # Scale all observations so that sum of columns equals 1. This helps normalize values
 
 Scaled_Stats_by_hero_type <- Stats_by_hero_type
 
-Scaled_Stats_by_hero_type <- sapply(Scaled_Stats_by_hero_type[,-1],function(x) round(x/sum(x),2))
+Scaled_Stats_by_hero_type$Class <- NULL
+
+Scaled_Stats_by_hero_type <- sapply(Scaled_Stats_by_hero_type,function(x) (x/sum(as.numeric(x))))
 
 Class <- c("AGI","INT","STR")
 
