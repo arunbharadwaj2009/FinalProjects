@@ -130,7 +130,7 @@ Using this metric, we plot a histogram of percentage of wins. Highest occurence 
 
 
 ## Correlation between trueskill_mu and percentage_wins
-trueskill_mu is a fan defined measure of player skill. To check its accuracy, we correlate it with percentage_wins. Graph shows that higher skill level implies higher win percentage. Since player skill is hard to measure, a standard deviation measure of player ability is included. The different colors of the below dots gives the different standard deviations. 
+trueskill_mu is an industry accepted measure of player skill, developed by Microsoft Research. To check its accuracy, we correlate trueskill with percentage_wins. Graph shows that higher skill level implies higher win percentage. Since player skill is hard to measure, a standard deviation measure of player ability is included. The different colors of the below dots gives the different standard deviations. 
 
 ```{r players_ratings_csv2, echo=FALSE}
 library(tidyr)
@@ -141,4 +141,10 @@ ggplot(players_ratings_csv2,aes(percentage_wins)) +geom_histogram(aes(y=..densit
 
 
 ggplot(players_ratings_csv2,aes(x=trueskill_mu,y=percentage_wins,col=trueskill_sigma)) +geom_point() + geom_jitter(shape=1)
+```
+
+## Correlation between game duration and winning team (radiant or dire)
+A scatterplot between game duration and winning team is plotted. TRUE or FALSE are categorical  variables with respect to radiant team winning. True implies that radiant team has won and vice versa. Shape of the two plots are very similar showing that length of the game does not offer an advantage to any team.
+```{r match_csv,echo=FALSE}
+ggplot(match_csv,aes(x=radiant_win,y=duration)) +geom_point() + geom_jitter(shape=1)
 ```
