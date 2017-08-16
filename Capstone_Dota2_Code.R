@@ -167,3 +167,15 @@ function_boxplot_level_itemclass(players_csv2$item_2)
 function_boxplot_level_itemclass(players_csv2$item_3)
 function_boxplot_level_itemclass(players_csv2$item_4)
 function_boxplot_level_itemclass(players_csv2$item_5)
+
+# Barplot of item_0 to item_5 versus hero type
+
+function_item_and_hero <- function(b){
+item_and_hero <- players_csv2 %>% group_by(Class,b) %>% tally() 
+item_and_hero <- item_and_hero[-61,]
+item_and_hero <- item_and_hero %>% group_by(Class) %>% mutate(percentage=n/sum(n)*100)
+item_and_hero_1 <- item_and_hero %>% filter(percentage > 5)
+ggplot(item_and_hero_1,aes(x=Class,y=percentage)) + geom_bar(stat='identity',position='dodge')
+}
+
+function_item_and_hero(players_csv2$item_0)
