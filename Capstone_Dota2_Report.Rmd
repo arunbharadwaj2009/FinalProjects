@@ -128,7 +128,11 @@ While total_wins is available for each account_id, simply looking at total_wins 
 
 Using this metric, we plot a histogram of percentage of wins. Highest occurence of percentage_wins is 0.5, showing that maximum players win half their games.
 
+```{r players_ratings_csv2,echo=FALSE}
 
+ggplot(players_ratings_csv2,aes(percentage_wins)) +geom_histogram(aes(y=..density..)) + geom_density(aes(y=..density..))
+
+```
 ## Correlation between trueskill_mu and percentage_wins
 trueskill_mu is an industry accepted measure of player skill, developed by Microsoft Research. To check its accuracy, we correlate trueskill with percentage_wins. Graph shows that higher skill level implies higher win percentage. Since player skill is hard to measure, a standard deviation measure of player ability is included. The different colors of the below dots gives the different standard deviations. 
 
@@ -137,8 +141,6 @@ library(tidyr)
 library(dplyr)
 library(ggplot2)
 library(reshape2)
-ggplot(players_ratings_csv2,aes(percentage_wins)) +geom_histogram(aes(y=..density..)) + geom_density(aes(y=..density..))
-
 
 ggplot(players_ratings_csv2,aes(x=trueskill_mu,y=percentage_wins,col=trueskill_sigma)) +geom_point() + geom_jitter(shape=1)
 ```

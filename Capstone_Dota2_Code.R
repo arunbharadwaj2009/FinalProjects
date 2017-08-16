@@ -165,3 +165,7 @@ ggplot(players_ratings_csv2,aes(x=trueskill_mu,y=percentage_wins,col=trueskill_s
 # Scatter plot of radiant_win and game duration shows that radiant or dire winning is unaffected by game duration (radiant and dire are the names of 2 dota teams)
 
 ggplot(match_csv,aes(x=radiant_win,y=duration)) +geom_point() + geom_jitter(shape=1)
+
+# Histogram of level values in players_csv2. Level refers to the player/hero`s level during the end of the game
+
+ggplot(players_csv2,aes(x=level)) + geom_histogram() 
