@@ -83,30 +83,21 @@ players_csv1 <- players_csv1 %>% mutate(player_slot_new = case_when(player_slot 
 players_csv1$player_slot <- NULL
 colnames(players_csv1)[colnames(players_csv1)=="player_slot_new"] <- "player_slot"
 
-# In players_csv2 item_0, item_1, item_2, item_3, item_4 and item_5 to be converted to item classifications. Items are classified as Strength (Str), Agility (Agi), Intelligence (Int)
-## To perform this conversion, a new file called item_class is created using item_ids_csv as base. Using information from the internet, a new column is created next to the item_name column. This column is item_class.
-
-## Since some items can be classified into multiple groups, item_class data frame has 5 columns of item_class. First, we combine observations of these 5 columns into a single column, separated by comma, called item_class.
-## First convert all NA values in empty observations to blank
-
-item_class[is.na(item_class)] <- ""
-
-item_class$item_class <- paste(item_class$item_class,item_class$X4,item_class$X5,item_class$X6,item_class$X7)
-
-item_class[,4:7] <- NULL
+# In players_csv2 item_0, item_1, item_2, item_3, item_4 and item_5 to be converted to item classifications. Items are classified as Strength (Str), Agility (Agi), Intelligence (Int), Miscellaneous (Misc), Aura (Aura), Armour (Armour), Health (Heal) and combinations of these classifications.
+## To perform this conversion, a new file called item_class1 is created using item_ids_csv as base. Using information from the internet, a new column is created next to the item_name column. This column is item_class.
 
 # This piece of code was reused to convert item_0, item_1, item_2, item_3, item_4 and item_5 columns from item_id to item_class
 ## This was done by first creating a new dataframe called players_csv2, identical to players_csv1. 
-## Next, since the item_id column is only available in item_class dataframe and not in players_csv2 dataframe, we rename item_0 to item_id, since they are both the same. (item_0 to item_5 refer to id`s inventory items in different boxes inside a hero`s inventory dashboard. In essence, they are the same as item_id)
+## Next, since the item_id column is only available in item_class1 dataframe and not in players_csv2 dataframe, we rename item_0 to item_id, since they are both the same. (item_0 to item_5 refer to id`s inventory items in different boxes inside a hero`s inventory dashboard. In essence, they are the same as item_id)
 ## Now left_join is used to combine item_class and players_csv2 using the item_id column, that is now common in both dataframes
-## After the join is completed, the item_class column (item_class dataframe also has column named item_class) is renamed to item_0
+## After the join is completed, the item_class column is renamed to item_0
 ## item_id, item_name are nullified since they are not required
 ## This similar procedure is performed for item_0 to item_5 columns in players_csv2
 
 players_csv2 <- players_csv1
 
 colnames(players_csv2)[colnames(players_csv2)=="item_5"] <- "item_id"
-players_csv2 <- left_join(players_csv2,item_class,by="item_id") 
+players_csv2 <- left_join(players_csv2,item_class_1,by="item_id") 
 colnames(players_csv2)[colnames(players_csv2)=="item_class"] <- "item_5"
 players_csv2$item_id <- NULL
 players_csv2$item_name <- NULL
@@ -166,6 +157,13 @@ ggplot(players_ratings_csv2,aes(x=trueskill_mu,y=percentage_wins,col=trueskill_s
 
 ggplot(match_csv,aes(x=radiant_win,y=duration)) +geom_point() + geom_jitter(shape=1)
 
-# Histogram of level values in players_csv2. Level refers to the player/hero`s level during the end of the game
+# Boxplot of level values for each type of item in players_csv2. Level refers to the player/hero`s level during the end of the game. 
 
-ggplot(players_csv2,aes(x=level)) + geom_histogram() 
+function_boxplot_level_itemclass <- function(a){ggplot(players_csv2,aes(x=a,y=level)) + geom_boxplot() + theme(axis.text.x=element_text(angle=-90)) + labs(x="Item types bought by Hero",y="Hero level at game end")}
+
+function_boxplot_level_itemclass(players_csv2$item_0)
+function_boxplot_level_itemclass(players_csv2$item_1)
+function_boxplot_level_itemclass(players_csv2$item_2)
+function_boxplot_level_itemclass(players_csv2$item_3)
+function_boxplot_level_itemclass(players_csv2$item_4)
+function_boxplot_level_itemclass(players_csv2$item_5)
