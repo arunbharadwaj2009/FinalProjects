@@ -150,3 +150,52 @@ A scatterplot between game duration and winning team is plotted. TRUE or FALSE a
 ```{r match_csv,echo=FALSE}
 ggplot(match_csv,aes(x=radiant_win,y=duration)) +geom_point() + geom_jitter(shape=1)
 ```
+## Boxplot of item types and hero levels at end of game.  Since a hero can have 6 items (item_0 to item_5), there are 6 different box plots
+
+Below plot, drawn between item_0 and hero level, shows the Dam (Damage) item type to have highest level median, followed by Disable. Int item types have the lowest median level.
+```{r players_csv2,echo=FALSE}
+function_boxplot_level_itemclass <- function(a){ggplot(players_csv2,aes(x=a,y=level)) + geom_boxplot() + theme(axis.text.x=element_text(angle=-90)) + labs(x="Item types bought by Hero",y="Hero level at game end")}
+
+function_boxplot_level_itemclass(players_csv2$item_0)
+
+```
+Below plot, drawn between item_1 and hero level, is very similar to the previous plot.
+```{r players_csv2,echo=FALSE}
+function_boxplot_level_itemclass <- function(a){ggplot(players_csv2,aes(x=a,y=level)) + geom_boxplot() + theme(axis.text.x=element_text(angle=-90)) + labs(x="Item types bought by Hero",y="Hero level at game end")}
+
+function_boxplot_level_itemclass(players_csv2$item_1)
+
+```
+
+Below plot, drawn between item_2 and hero level, is very similar to the previous plot.
+```{r players_csv2,echo=FALSE}
+function_boxplot_level_itemclass <- function(a){ggplot(players_csv2,aes(x=a,y=level)) + geom_boxplot() + theme(axis.text.x=element_text(angle=-90)) + labs(x="Item types bought by Hero",y="Hero level at game end")}
+
+function_boxplot_level_itemclass(players_csv2$item_2)
+
+```
+Below plot, drawn between item_3 and hero level, is very similar to the previous plot.
+```{r players_csv2,echo=FALSE}
+function_boxplot_level_itemclass <- function(a){ggplot(players_csv2,aes(x=a,y=level)) + geom_boxplot() + theme(axis.text.x=element_text(angle=-90)) + labs(x="Item types bought by Hero",y="Hero level at game end")}
+
+function_boxplot_level_itemclass(players_csv2$item_3)
+
+```
+
+Below plot, drawn between item_4 and hero level, is a bit different since the level median of Dam (Damage) and Disable are nearly equal.
+```{r players_csv2,echo=FALSE}
+function_boxplot_level_itemclass <- function(a){ggplot(players_csv2,aes(x=a,y=level)) + geom_boxplot() + theme(axis.text.x=element_text(angle=-90)) + labs(x="Item types bought by Hero",y="Hero level at game end")}
+
+function_boxplot_level_itemclass(players_csv2$item_4)
+
+```
+
+Below plot, drawn between item_5 and hero level, is similar to the first 4 plots.
+```{r players_csv2,echo=FALSE}
+function_boxplot_level_itemclass <- function(a){ggplot(players_csv2,aes(x=a,y=level)) + geom_boxplot() + theme(axis.text.x=element_text(angle=-90)) + labs(x="Item types bought by Hero",y="Hero level at game end")}
+
+function_boxplot_level_itemclass(players_csv2$item_5)
+
+```
+
+It can be inferred that Damage and Disable class items have the highest positive effect on hero performance. Int item types have the lowest positive effect on hero performance. It is possible that players maximize hero performance by purchasing Damage or Disable items in all inventory slots (item_0 to item_5), thereby improving hero performance even further.
