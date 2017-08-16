@@ -3,6 +3,7 @@ title: "Capstone_Dota2_Report"
 author: "Arun Bharadwaj"
 date: "August 14, 2017"
 output:
+  word_document: default
   pdf_document: default
   html_document: default
 ---
