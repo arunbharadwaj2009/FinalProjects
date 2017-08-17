@@ -2,6 +2,19 @@ library(tidyr)
 library(dplyr)
 library(ggplot2)
 library(reshape2)
+library(xlsx)
+library(readr)
+
+# Input all required csv files 
+match_csv <- read_csv("match.csv")
+chat_csv <- read_csv("chat.csv")
+purchase_log_csv <- read_csv("purchase_log.csv")
+players_csv <- read_csv("players.csv")
+objectives_csv <- read_csv("objectives.csv")
+player_ratings_csv <- read_csv("player_ratings.csv")
+item_class_1 <- read_csv("item_class_1.csv")
+
+
 
 ## From here to Line 68 - Data Wrangling
 
@@ -102,6 +115,19 @@ colnames(players_csv2)[colnames(players_csv2)=="item_class"] <- "item_5"
 players_csv2$item_id <- NULL
 players_csv2$item_name <- NULL
 
+#function_item_id_to_item_class <- function(a){
+#colnames(players_csv2)[colnames(players_csv2)==a] <- "item_id"
+#players_csv2 <- left_join(players_csv2,item_class_1,by="item_id") 
+#colnames(players_csv2)[colnames(players_csv2)=="item_class"] <- a
+#players_csv2$item_id <- NULL
+#players_csv2$item_name <- NULL  
+#}
+
+#function_item_id_to_item_class("item_0")
+
+# Export players_csv2 for markdown
+write.csv(players_csv2,file="players_csv2.csv")
+
 # Delete Class.x column that has been created twice in players_csv and players_csv1. Also rename Class.y column to Class
 players_csv$Class.x <- NULL
 players_csv1$Class.x <- NULL
@@ -135,6 +161,8 @@ row.names(Scaled_Stats_by_hero_type) <- Class
 
 Scaled_Stats_by_hero_type_m <- melt(Scaled_Stats_by_hero_type)
 
+write.csv(Scaled_Stats_by_hero_type_m,file = "Scaled_Stats_by_hero_type_m.csv")
+
 ggplot(Scaled_Stats_by_hero_type_m, aes(x=Var1,y=Var2,fill=value)) + geom_tile() + labs(x="Type of Hero",y="Stats") + scale_fill_gradient(low="white",high="red")
 
 # Better to only look at players who have played a minimum of 5 games. So, players_ratings_csv2 only includes those players 
@@ -144,6 +172,10 @@ players_ratings_csv2 <- players_ratings_csv1 %>% filter(total_matches>4)
 # Insert new column to find percentage of wins
 
 players_ratings_csv2 <- players_ratings_csv2 %>% mutate(percentage_wins=total_wins/total_matches)
+
+# Export players_ratings_csv2 for R markdown
+
+write.csv(players_ratings_csv2,file="players_ratings_csv2.csv")
 
 # Histogram line plot of percentage_wins statistic by player account_id. Most players win half of the games they play.
 
@@ -170,11 +202,17 @@ function_boxplot_level_itemclass(players_csv2$item_5)
 
 # Barplot of item_0 to item_5 versus hero type
 
-function_item_and_hero <- function(b,c){
-item_and_hero <- b %>% group_by_(Class,as.factor(c)) %>% tally() 
+#function_item_and_hero <- function(data=players_csv2,c){
+#item_and_hero <- data %>% group_by_(Class,as.factor(c)) %>% tally() 
+#item_and_hero <- item_and_hero %>% group_by_(Class) %>% mutate(percentage=n/sum(n)*100)
+#item_and_hero_1 <- item_and_hero %>% filter(percentage > 5)
+#ggplot(item_and_hero_1,aes(x=Class,y=percentage)) + geom_bar(stat='identity',position='dodge')
+#}
+
+#function_item_and_hero(data=players_csv2,~item_0)
+
+item_and_hero <- players_csv2 %>% group_by(Class,item_0) %>% tally() 
 item_and_hero <- item_and_hero %>% group_by(Class) %>% mutate(percentage=n/sum(n)*100)
 item_and_hero_1 <- item_and_hero %>% filter(percentage > 5)
-ggplot(item_and_hero_1,aes(x=Class,y=percentage)) + geom_bar(stat='identity',position='dodge')
-}
+ggplot(na.omit(item_and_hero_1),aes(x=Class,y=percentage,fill=item_0)) + geom_bar(stat='identity',position='dodge')
 
-function_item_and_hero(players_csv2,~item_0)

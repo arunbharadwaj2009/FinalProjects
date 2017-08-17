@@ -1,0 +1,232 @@
+---
+title: "Capstone_Dota2_Milestone"
+author: "Arun Bharadwaj"
+date: "August 13, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+
+```
+
+## Dota2 Capstone Milestone Report
+
+# Introduction
+
+The Dota 2 dataset was downloaded from Kaggle for the capstone project of the Springboard Foundations of Data Science course. Dataset has 18 csv files, with the data of 50,000 ranked Dota matches. 
+
+# Approaching the Capstone
+
+The capstone project is approached by first identifying the problem statement. Next, the most important csv`s files are identified. Data wrangling is done, first on the most important files followed by all other files. After this, exploratory data analysis and some basic statistical correlations are performed. Finally, regressions and machine learning algorithms are used on the dataset.
+
+# Problem Statement
+
+The goal of the capstone is to identify potential biases in the gameplay structure of Dota 2. By gameplay structure, we refer to the more than 100 heroes and items that can be picked by players. It is important that any game, board game or computer game, measures the true skill level of a player accurately. It is possible that some specific combinations of pre-game choices affects the winning ability of a player. If such a situation were to arise, the game is unlikely to be an accurate estimate of the player`s true skill level. 
+
+# Why and for whom is this problem statement important
+
+Valve Corporation is the developer of Dota 2. For Valve Corporation, it is of utmost importance that their games are accurate predictors of player skill level. If a player manages to find loopholes or shortcuts that allow them to win, this will have a negative effect on their reputation. Ensuring fairness and accuracy of gameplay and game mechanic is very important for any game developer.
+
+# What specific questions must be answered, with respect to the dataset, to solve this problem statement
+
+To solve this problem statement, we focus on heroes, combination of heroes in a team and inventory items. At the start of a game, each player is allowed to choose a hero. Heroes are divided into three types: strength, agility and intelligence. As the names suggest, each type of hero has certain advantages. We can try finding if certain types of heroes allow players to win more easily.
+
+Many Dota games are 5 on 5 multiplayer matches. There are two teams: radiant and dire. Players are allowed to choose any hero from the list of 113 heroes. A hero already chosen by another player cannot be chosen again. So, all ten heroes are unique. For a team, there are no restrictions on the types of heroes they can choose other than the requirement that all heroes in the game must be unique. A team can choose five strength or five agility or five intelligence heroes, if it chooses. 
+
+Finally, each player can buy inventory items using the gold they get from killing creeps, destroying buildings and killing opponent heroes. The player and their hero can use this gold to buy items that improve the attack and defense ratings of the hero. Understanding if specific combinations of heroes and items give a player undue advantage can also help solve the problem statement.
+
+# Important CSV files
+
+match_csv, player_rating_csv and players_csv are the 3 most important csv files. 
+
+match_csv contains high level information about each match including duration, time to first blood, status of tower and barracks of two teams at end of game, geographical region where the game is taking place and the team that won the game (radiant or dire).
+```{r 1}
+match_csv <- read.csv("Data/match.csv")
+head(match_csv)
+```
+player_ratings_csv has information about all the different human players that were a part of the 50,000 games. The information includes player account_id, total games they have played, total games in which they were a part of the winning team, mean of player skill and standard deviation of player skill. Player skill level and their standard deviation have been calculated by Dota fans, with no involvement from Valve Corporation. So, these 2 columns have to be cross checked for accuracy.
+```{r 2,echo=FALSE}
+player_ratings_csv <- read.csv("Data/player_ratings.csv")
+head(player_ratings_csv)
+```
+players_csv has specific information about each match, player account_id that participated in the match, hero_id of the hero used by the player, gold earned and spent, xp earned, deaths, kills, assists, stuns and last hits per hero. It also gives detailed information about gold extracted from killing creeps, killing other heroes and destroying buildings.  
+```{r 3,echo=FALSE}
+players_csv <- read.csv("Data/players.csv")
+head(players_csv)
+```
+
+# Data Wrangling
+
+## Identify most important csv files
+First part of data wrangling is to identify the most important csv files out of the 18 csv files. The 3 most important files have already been identified above. 
+
+## Eliminate columns that do not add value to analysis
+Some hist functions were run on game_mode, negative_votes and positive_votes columns of match_csv file. Results from these hist functions showed that all 3 variables have only 1 respective value. Since the 3 variables do not have different values, they are of no significance to our analysis.
+
+## Check if data points of some important variables make sense 
+In match_csv, the mean of first__blood_time returned a value of 93. Having played Dota, it is obvious that 93 minutes is too long for the mean of first blood time. A cursory internet search shows that in a sample tournament, first blood time was 3 minutes. It is safe to assume that the unit of first_blood_time is seconds. Close to 25000 observations have a first blood time less than 100 seconds. This seems improbable since on average, a player takes atleast 1.5 minutes to buy some inventory and head to center of the map.
+
+## Check if some small csv files can be combined with larger csv files to make it easier to visualize data
+In match_csv, a variable called cluster is shown in numeric. This variable shows the geographical region where the match is taking place. A cluster_csv file uses a key value pair, where key is numeric cluster variable and value is name of geographical region. Left_join is used to merge the match_csv and cluster_csv files to help with data visualization. Multiple such operations are performed to combine small csv`s with larger ones.
+
+## Convert incorrect negative values to 0
+In multiple columns, there are negative value observations. For instance, some time and account id columns have negative values. This is incorrect and must be modified. Such incorrect negative values are made equal to 0.
+
+### Why not convert incorrect negative values to NA
+Majority of incorrect negative values are seen in multiple time columns and account id column. In the chat_csv file`s time column, which is arranged in ascending of time per match id, the negative values are very low single digit numbers. It is likely that  these actions occurred at the very beginning of the game. Instead of counting them as 0 time, the data was incorrectly recorded as low negative values. So, for the sake of simplicity, all negative time values are converted to 0. In account id, we know that players can choose to not reveal their id and are counted as anonymous. These anonymous players are  counted as 0 in the account id. Again, for the sake of simplicity, negative account id are also considered as anonymous and converted to 0 value. 
+
+## Classify hero_id column in players_csv to STR, AGI and INT 
+For the ease of classification, analysis and predictive modelling, we can classify heroes into STR, AGI and INT. The 113 heroes have already been classified by a former Springboard student, who has posted this specific csv file on his github profile.
+
+## Remove rows in players_csv and players_ratings_csv where account_id = 0
+account_id = 0 are rows where the player has chosen to remain anonymous and not disclose their identity. With account_id being a categorical variable, having too many rows with 0 id`s tends to distort our analysis, especially when combining csv files using account_id. So, while players_csv file is kept as it is, a new players_csv1 is created after removing rows with account_id as 0.
+
+## Replace 0 to 4 and 128-132 in players_csv1 to Radiant and Dire
+A cursory internet search shows that the player_slot column in players_csv1 actually stands for the 2 dota teams: radiant and dire. While 0-4 is team radiant, 128-132 is team dire. These numbers are replaced with team names in the player_slot column of players_csv1.
+
+## Convert observations incolumns named item_0 to item_5, in players_csv3, from numbers to actual names of items 
+This is done by performing a left join operation between items_id_csv and players_csv3 using the item_id column. While item_id column is already available in items_id_csv, columns item_0 to item_1 are renamed, called as item_id and then left join operations is performed.
+
+## Nullify columns with very high percentage of NA values
+For the sake of simplicity, columns with very high percentage of NA values are nullified. These columns are considered to be not significant for the purpose of our analysis. This is done using the summarise_at() function of dplyr.
+
+## player_ratings_csv2 created which only includes account_id`s that have played 5 games or more
+Human players that have played less than 5 games of Dota are poor predictors of skill and gameplay fairness. player_ratings_csv2 is created that only contains players that have played more than 5 games.
+
+# Exploratory Data Analysis
+
+## Hero Stats
+players_csv has detailed information about the player, the hero they chose and their in-game performance. This information is grouped by hero class, which are STR/INT/AGI. Further, all stats are normalized such that a particular stat of STR hero plus AGI hero plus INT hero equals zero. This operation allows us to view all stats on a single heatmap. The code and the heatmap is shown below
+```{r 4}
+Scaled_Stats_by_hero_type_m <- read.csv("Data/Scaled_Stats_by_hero_type_m.csv")
+
+ggplot(Scaled_Stats_by_hero_type_m, aes(x=Var1,y=Var2,fill=value)) + geom_tile() + labs(x="Type of Hero",y="Stats") + scale_fill_gradient(low="white",high="red")
+
+```
+## Percentage of Wins
+While total_wins is available for each account_id, simply looking at total_wins is inadequate. More accurate is to look at percentage_wins. This is possible since we know both total_wins and total_matches.
+
+Using this metric, we plot a histogram of percentage of wins. Highest occurence of percentage_wins is 0.5, showing that maximum players win half their games.
+
+```{r 5}
+
+players_ratings_csv2 <- read.csv("Data/players_ratings_csv2.csv")
+
+# Histogram line plot of percentage_wins statistic by player account_id. Most players win half the games they play.
+
+ggplot(players_ratings_csv2,aes(percentage_wins)) +geom_histogram(aes(y=..density..)) + geom_density(aes(y=..density..))
+
+```
+
+## Correlation between trueskill_mu and percentage_wins
+trueskill_mu is a fan defined measure of player skill. To check its accuracy, we correlate it with percentage_wins. Graph shows that higher skill level implies higher win percentage. Since player skill is hard to measure, a standard deviation measure of player ability is included. The different colors of the below dots gives the different standard deviations. 
+
+```{r 6}
+
+
+# Scatter plot of trueskill_mu and percentage_wins in players_ratings_csv2. trueskill_sigma is assigned to color attribute. Both trueskill attributes are calculated by Dota fans and not by Valve corporation. While trueskill_mu is indicator of player`s ability, with higher value implying better player, trueskill_sigma is the uncertainty in the trueskill_mu measure. As expected, skill and win percentage are correlated. 
+
+ggplot(players_ratings_csv2,aes(x=trueskill_mu,y=percentage_wins,col=trueskill_sigma)) +geom_point() + geom_jitter(shape=1)
+```
+
+## Boxplot of item types and hero levels at end of game.  Since a hero can have 6 items (item_0 to item_5), there are 6 different box plots
+
+Below plot, drawn between item_0 and hero level, shows the Dam (Damage) item type to have highest level median, followed by Disable. Int item types have the lowest median level.
+```{r 7,echo=FALSE}
+players_csv2 <- read.csv("Data/players_csv2.csv")
+function_boxplot_level_itemclass <- function(a){ggplot(players_csv2,aes(x=a,y=level)) + geom_boxplot() + theme(axis.text.x=element_text(angle=-90)) + labs(x="Item types bought by Hero",y="Hero level at game end")}
+
+function_boxplot_level_itemclass(players_csv2$item_0)
+
+```
+Below plot, drawn between item_1 and hero level, is very similar to the previous plot.
+```{r 8,echo=FALSE}
+function_boxplot_level_itemclass <- function(a){ggplot(players_csv2,aes(x=a,y=level)) + geom_boxplot() + theme(axis.text.x=element_text(angle=-90)) + labs(x="Item types bought by Hero",y="Hero level at game end")}
+
+function_boxplot_level_itemclass(players_csv2$item_1)
+
+```
+
+Below plot, drawn between item_2 and hero level, is very similar to the previous plot.
+```{r 9,echo=FALSE}
+function_boxplot_level_itemclass <- function(a){ggplot(players_csv2,aes(x=a,y=level)) + geom_boxplot() + theme(axis.text.x=element_text(angle=-90)) + labs(x="Item types bought by Hero",y="Hero level at game end")}
+
+function_boxplot_level_itemclass(players_csv2$item_2)
+
+```
+Below plot, drawn between item_3 and hero level, is very similar to the previous plot.
+```{r 10,echo=FALSE}
+function_boxplot_level_itemclass <- function(a){ggplot(players_csv2,aes(x=a,y=level)) + geom_boxplot() + theme(axis.text.x=element_text(angle=-90)) + labs(x="Item types bought by Hero",y="Hero level at game end")}
+
+function_boxplot_level_itemclass(players_csv2$item_3)
+
+```
+
+Below plot, drawn between item_4 and hero level, is a bit different since the level median of Dam (Damage) and Disable are nearly equal.
+```{r 11,echo=FALSE}
+function_boxplot_level_itemclass <- function(a){ggplot(players_csv2,aes(x=a,y=level)) + geom_boxplot() + theme(axis.text.x=element_text(angle=-90)) + labs(x="Item types bought by Hero",y="Hero level at game end")}
+
+function_boxplot_level_itemclass(players_csv2$item_4)
+
+```
+
+Below plot, drawn between item_5 and hero level, is similar to the first 4 plots.
+```{r 12,echo=FALSE}
+function_boxplot_level_itemclass <- function(a){ggplot(players_csv2,aes(x=a,y=level)) + geom_boxplot() + theme(axis.text.x=element_text(angle=-90)) + labs(x="Item types bought by Hero",y="Hero level at game end")}
+
+function_boxplot_level_itemclass(players_csv2$item_5)
+
+```
+
+It can be inferred that Damage and Disable class items have the highest positive effect on hero performance. Int item types have the lowest positive effect on hero performance. It is possible that players maximize hero performance by purchasing Damage or Disable items in all inventory slots (item_0 to item_5), thereby improving hero performance even further.
+
+```{r 13,echo=FALSE}
+item_and_hero <- players_csv2 %>% group_by(Class,item_0) %>% tally() 
+item_and_hero <- item_and_hero %>% group_by(Class) %>% mutate(percentage=n/sum(n)*100)
+item_and_hero_1 <- item_and_hero %>% filter(percentage > 5)
+ggplot(na.omit(item_and_hero_1),aes(x=Class,y=percentage,fill=item_0)) + geom_bar(stat='identity',position='dodge')
+
+```
+```{r 14,echo=FALSE}
+item_and_hero <- players_csv2 %>% group_by(Class,item_1) %>% tally() 
+item_and_hero <- item_and_hero %>% group_by(Class) %>% mutate(percentage=n/sum(n)*100)
+item_and_hero_1 <- item_and_hero %>% filter(percentage > 5)
+ggplot(na.omit(item_and_hero_1),aes(x=Class,y=percentage,fill=item_1)) + geom_bar(stat='identity',position='dodge')
+```
+```{r 15,echo=FALSE}
+item_and_hero <- players_csv2 %>% group_by(Class,item_2) %>% tally() 
+item_and_hero <- item_and_hero %>% group_by(Class) %>% mutate(percentage=n/sum(n)*100)
+item_and_hero_1 <- item_and_hero %>% filter(percentage > 5)
+ggplot(na.omit(item_and_hero_1),aes(x=Class,y=percentage,fill=item_2)) + geom_bar(stat='identity',position='dodge')
+```
+
+```{r 16,echo=FALSE}
+item_and_hero <- players_csv2 %>% group_by(Class,item_3) %>% tally() 
+item_and_hero <- item_and_hero %>% group_by(Class) %>% mutate(percentage=n/sum(n)*100)
+item_and_hero_1 <- item_and_hero %>% filter(percentage > 5)
+ggplot(na.omit(item_and_hero_1),aes(x=Class,y=percentage,fill=item_3)) + geom_bar(stat='identity',position='dodge')
+```
+
+```{r 17,echo=FALSE}
+item_and_hero <- players_csv2 %>% group_by(Class,item_4) %>% tally() 
+item_and_hero <- item_and_hero %>% group_by(Class) %>% mutate(percentage=n/sum(n)*100)
+item_and_hero_1 <- item_and_hero %>% filter(percentage > 5)
+ggplot(na.omit(item_and_hero_1),aes(x=Class,y=percentage,fill=item_4)) + geom_bar(stat='identity',position='dodge')
+```
+```{r 18,echo=FALSE}
+item_and_hero <- players_csv2 %>% group_by(Class,item_4) %>% tally() 
+item_and_hero <- item_and_hero %>% group_by(Class) %>% mutate(percentage=n/sum(n)*100)
+item_and_hero_1 <- item_and_hero %>% filter(percentage > 5)
+ggplot(na.omit(item_and_hero_1),aes(x=Class,y=percentage,fill=item_4)) + geom_bar(stat='identity',position='dodge')
+```
+```{r 19,echo=FALSE}
+item_and_hero <- players_csv2 %>% group_by(Class,item_5) %>% tally() 
+item_and_hero <- item_and_hero %>% group_by(Class) %>% mutate(percentage=n/sum(n)*100)
+item_and_hero_1 <- item_and_hero %>% filter(percentage > 5)
+ggplot(na.omit(item_and_hero_1),aes(x=Class,y=percentage,fill=item_5)) + geom_bar(stat='identity',position='dodge')
+```
