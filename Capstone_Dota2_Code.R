@@ -116,14 +116,14 @@ players_csv2$item_id <- NULL
 players_csv2$item_name <- NULL
 
 #function_item_id_to_item_class <- function(a){
-#colnames(players_csv2)[colnames(players_csv2)==a] <- "item_id"
+#colnames(players_csv2)[colnames(players_csv2)==as.character(a)] <- "item_id"
 #players_csv2 <- left_join(players_csv2,item_class_1,by="item_id") 
-#colnames(players_csv2)[colnames(players_csv2)=="item_class"] <- a
+#colnames(players_csv2)[colnames(players_csv2)=="item_class"] <- as.character(a)
 #players_csv2$item_id <- NULL
 #players_csv2$item_name <- NULL  
 #}
 
-#function_item_id_to_item_class("item_0")
+#function_item_id_to_item_class(item_0)
 
 # Export players_csv2 for markdown
 write.csv(players_csv2,file="players_csv2.csv")
@@ -209,10 +209,68 @@ function_boxplot_level_itemclass(players_csv2$item_5)
 #ggplot(item_and_hero_1,aes(x=Class,y=percentage)) + geom_bar(stat='identity',position='dodge')
 #}
 
-#function_item_and_hero(data=players_csv2,~item_0)
+#function_item_and_hero(data=players_csv2,"item_0")
 
-item_and_hero <- players_csv2 %>% group_by(Class,item_0) %>% tally() 
-item_and_hero <- item_and_hero %>% group_by(Class) %>% mutate(percentage=n/sum(n)*100)
-item_and_hero_1 <- item_and_hero %>% filter(percentage > 5)
-ggplot(na.omit(item_and_hero_1),aes(x=Class,y=percentage,fill=item_0)) + geom_bar(stat='identity',position='dodge')
+item_and_hero_0 <- players_csv2 %>% count(Class,item_0) %>% group_by(Class) %>% mutate(percentage_item_0=n/sum(n)*100) %>% filter(percentage_item_0 > 5)
+item_and_hero_0$n <- NULL
+
+item_and_hero_1 <- players_csv2 %>% count(Class,item_1) %>% group_by(Class) %>% mutate(percentage_item_1=n/sum(n)*100) %>% filter(percentage_item_1 > 5)
+item_and_hero_1$n <- NULL
+
+item_and_hero_2 <- players_csv2 %>% count(Class,item_2) %>% group_by(Class) %>% mutate(percentage_item_2=n/sum(n)*100) %>% filter(percentage_item_2 > 5)
+item_and_hero_2$n <- NULL
+
+item_and_hero_3 <- players_csv2 %>% count(Class,item_3) %>% group_by(Class) %>% mutate(percentage_item_3=n/sum(n)*100) %>% filter(percentage_item_3 > 5)
+item_and_hero_3$n <- NULL
+
+item_and_hero_4 <- players_csv2 %>% count(Class,item_4) %>% group_by(Class) %>% mutate(percentage_item_4=n/sum(n)*100) %>% filter(percentage_item_4 > 5)
+item_and_hero_4$n <- NULL
+
+item_and_hero_5 <- players_csv2 %>% count(Class,item_5) %>% group_by(Class) %>% mutate(percentage_item_5=n/sum(n)*100) %>% filter(percentage_item_5 > 5)
+item_and_hero_5$n <- NULL
+
+#function_item_and_hero <- function(data,b){data[[b]] <- data[[item_class]] }
+
+#function_item_and_hero(data=item_and_hero_0,b="item_0")
+
+colnames(item_and_hero_0)[colnames(item_and_hero_0)=="item_0"] <- "item_class"
+colnames(item_and_hero_1)[colnames(item_and_hero_1)=="item_1"] <- "item_class"
+colnames(item_and_hero_2)[colnames(item_and_hero_2)=="item_2"] <- "item_class"
+colnames(item_and_hero_3)[colnames(item_and_hero_3)=="item_3"] <- "item_class"
+colnames(item_and_hero_4)[colnames(item_and_hero_4)=="item_4"] <- "item_class"
+colnames(item_and_hero_5)[colnames(item_and_hero_5)=="item_5"] <- "item_class"
+
+item_and_hero <- left_join(item_and_hero_0,item_and_hero_1,by=c("Class","item_class")) %>% left_join(.,item_and_hero_2,by=c("Class","item_class")) %>% left_join(.,item_and_hero_3,by=c("Class","item_class"))%>% left_join(.,item_and_hero_4,by=c("Class","item_class")) %>% left_join(.,item_and_hero_5,by=c("Class","item_class"))
+     
+item_and_hero <- item_and_hero %>% unite(new,Class,item_class)
+item_and_hero <- item_and_hero[-18,]
+item_and_hero_m <- melt(item_and_hero)
+
+# Export item_and_hero_m for markdown file
+
+write.csv(item_and_hero_m,file="item_and_hero_m.csv")
+
+ggplot(item_and_hero_m,aes(x=new,y=value,colour=variable,group=1)) + geom_point() + geom_line(aes(group=variable)) + theme(axis.text.x=element_text(angle=-90)) + labs(x="Item class of the respective hero type",y="Percentage of observations") 
+
+# Identify heroes that win most games
+
+players_csv3 <- players_csv %>% mutate(player_slot = case_when(player_slot == 0|player_slot == 1|player_slot == 2|player_slot == 3|player_slot == 4 ~ "Radiant", player_slot == 128|player_slot == 129|player_slot == 130|player_slot == 131|player_slot == 132 ~ "Dire"))
+
+players_csv3 <- left_join(players_csv3,match_csv,by="match_id")
+players_csv3$radiant_win <- as.logical(players_csv3$radiant_win)
+players_csv3 <- players_csv3 %>% select(player_slot,radiant_win,Class) %>% mutate(winning_heroes_radiant=case_when(radiant_win==TRUE & player_slot=="Radiant" & Class == "STR" ~ "STR",radiant_win==TRUE & player_slot=="Radiant" & Class == "AGI" ~ "AGI",radiant_win==TRUE & player_slot=="Radiant" & Class == "INT" ~ "INT"))
+players_csv3 <- players_csv3 %>% mutate(winning_heroes_dire=case_when(radiant_win==FALSE & player_slot=="Dire" & Class == "STR" ~ "STR",radiant_win==FALSE & player_slot=="Dire" & Class == "AGI" ~ "AGI",radiant_win==FALSE & player_slot=="Dire" & Class == "INT" ~ "INT"))
+
+ggplot(na.omit(players_csv3[,"winning_heroes_radiant"]),aes(x=winning_heroes_radiant)) + geom_histogram(stat="count")
+ggplot(na.omit(players_csv3[,"winning_heroes_dire"]),aes(x=winning_heroes_dire)) + geom_histogram(stat="count")
+
+# Identify heroes that have the highest probability of winning
+
+Prob_Int_Winning <- sum((players_csv3$winning_heroes_radiant == "INT"),na.rm=TRUE)/sum(players_csv3$Class == "INT",na.rm=TRUE)
+Prob_AGI_Winning <- sum((players_csv3$winning_heroes_radiant == "AGI"),na.rm=TRUE)/sum(players_csv3$Class == "AGI",na.rm=TRUE)
+Prob_STR_Winning <- sum((players_csv3$winning_heroes_radiant == "STR"),na.rm=TRUE)/sum(players_csv3$Class == "STR",na.rm=TRUE)
+
+Prob_Hero_Winning <- c(Prob_Int_Winning,Prob_AGI_Winning,Prob_STR_Winning)
+
+barplot(Prob_Hero_Winning,main="Probability of winning for each hero type",names.arg = c("INT","AGI","STR"))
 
