@@ -258,7 +258,7 @@ players_csv3 <- players_csv %>% mutate(player_slot = case_when(player_slot == 0|
 
 players_csv3 <- left_join(players_csv3,match_csv,by="match_id")
 players_csv3$radiant_win <- as.logical(players_csv3$radiant_win)
-players_csv3 <- players_csv3 %>% select(player_slot,radiant_win,Class) %>% mutate(winning_heroes_radiant=case_when(radiant_win==TRUE & player_slot=="Radiant" & Class == "STR" ~ "STR",radiant_win==TRUE & player_slot=="Radiant" & Class == "AGI" ~ "AGI",radiant_win==TRUE & player_slot=="Radiant" & Class == "INT" ~ "INT"))
+players_csv3 <- players_csv3 %>% select(player_slot,radiant_win,Class,match_id) %>% mutate(winning_heroes_radiant=case_when(radiant_win==TRUE & player_slot=="Radiant" & Class == "STR" ~ "STR",radiant_win==TRUE & player_slot=="Radiant" & Class == "AGI" ~ "AGI",radiant_win==TRUE & player_slot=="Radiant" & Class == "INT" ~ "INT"))
 players_csv3 <- players_csv3 %>% mutate(winning_heroes_dire=case_when(radiant_win==FALSE & player_slot=="Dire" & Class == "STR" ~ "STR",radiant_win==FALSE & player_slot=="Dire" & Class == "AGI" ~ "AGI",radiant_win==FALSE & player_slot=="Dire" & Class == "INT" ~ "INT"))
 
 ggplot(na.omit(players_csv3[,"winning_heroes_radiant"]),aes(x=winning_heroes_radiant)) + geom_histogram(stat="count")
@@ -274,3 +274,32 @@ Prob_Hero_Winning <- c(Prob_Int_Winning,Prob_AGI_Winning,Prob_STR_Winning)
 
 barplot(Prob_Hero_Winning,main="Probability of winning for each hero type",names.arg = c("INT","AGI","STR"))
 
+# Team hero combinations and winnability
+
+## For sake of simplicity find out number of wins by teams that >= 3 STR or >= 3 AGI or >= 3 INT heroes. Find out which of these 3 combinations has highest winnability
+
+players_csv4 <- players_csv3 %>% mutate(STR_1 = case_when(winning_heroes_radiant=="STR" ~ 1)) %>% group_by(match_id,winning_heroes_radiant) %>% summarise(n_STR_1_winningradiant=sum(STR_1)) %>% filter(n_STR_1_winningradiant>=3)
+sum_n_STR_1_winningradiant <- nrow(players_csv4)
+
+players_csv5 <- players_csv3 %>% mutate(AGI_1 = case_when(winning_heroes_radiant=="AGI" ~ 1)) %>% group_by(match_id,winning_heroes_radiant) %>% summarise(n_AGI_1_winningradiant=sum(AGI_1)) %>% filter(n_AGI_1_winningradiant>=3)
+sum_n_AGI_1_winningradiant <- nrow(players_csv5)
+
+players_csv6 <- players_csv3 %>% mutate(INT_1 = case_when(winning_heroes_radiant=="INT" ~ 1)) %>% group_by(match_id,winning_heroes_radiant) %>% summarise(n_INT_1_winningradiant=sum(INT_1)) %>% filter(n_INT_1_winningradiant>=3)
+sum_n_INT_1_winningradiant <- nrow(players_csv6)
+
+players_csv7 <- players_csv3 %>% mutate(STR_1 = case_when(winning_heroes_dire=="STR" ~ 1)) %>% group_by(match_id,winning_heroes_dire) %>% summarise(n_STR_1_winningdire=sum(STR_1)) %>% filter(n_STR_1_winningdire>=3)
+sum_n_STR_1_winningdire <- nrow(players_csv7)
+
+players_csv8 <- players_csv3 %>% mutate(AGI_1 = case_when(winning_heroes_dire=="AGI" ~ 1)) %>% group_by(match_id,winning_heroes_dire) %>% summarise(n_AGI_1_winningdire=sum(AGI_1)) %>% filter(n_AGI_1_winningdire>=3)
+sum_n_AGI_1_winningdire <- nrow(players_csv8)
+
+players_csv9 <- players_csv3 %>% mutate(INT_1 = case_when(winning_heroes_dire=="INT" ~ 1)) %>% group_by(match_id,winning_heroes_dire) %>% summarise(n_INT_1_winningdire=sum(INT_1)) %>% filter(n_INT_1_winningdire>=3)
+sum_n_INT_1_winningdire <- nrow(players_csv9)
+
+sum_n_STR_winning <- sum_n_STR_1_winningradiant + sum_n_STR_1_winningdire
+sum_n_AGI_winning <- sum_n_AGI_1_winningradiant + sum_n_AGI_1_winningdire
+sum_n_INT_winning <- sum_n_INT_1_winningradiant + sum_n_INT_1_winningdire
+
+Team_Hero_Winning <- c(sum_n_STR_winning,sum_n_AGI_winning,sum_n_INT_winning)
+
+barplot(Team_Hero_Winning,main="Total team wins where team had >=3 heros of same type",names.arg = c("STR","AGI","INT"))
