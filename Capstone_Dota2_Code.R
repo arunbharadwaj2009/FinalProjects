@@ -299,6 +299,13 @@ barplot(Prob_Hero_Winning,main="Probability of winning for each hero type",names
 
 ## For sake of simplicity find out number of wins by teams that have >= 3 STR or >= 3 AGI or >= 3 INT heroes. 
 ## Find out which of these 3 combinations has highest winnability
+## This is done by first performing mutate on players_csv3 using 3 new columns called STR_1, AGI_1 and INT_1
+## For finding total matches where winning team had >= 3 STR heroes, a value of 1 is assigned to the STR_1 column. Similarly for AGI and INT heroes.
+## This action is performed separately for winning_heroes_radiant and winning_heroes_dire separately
+## Further, STR_1, AGI_1 and INT_1 are summarised and respective sums are calculated for radiant and dire separately
+## After finding sum, filter function is used to exclude sums that are less than 3
+## A new variable called sum_n_STR_1_winningradiant calculates total rowns of players_csv4 dataset. This is same as total number of games won by radiant team when STR >= 3
+## Further, sum of hero type for dire and radiant are added together.
 
 players_csv4 <- players_csv3 %>% mutate(STR_1 = case_when(winning_heroes_radiant=="STR" ~ 1)) %>% group_by(match_id,winning_heroes_radiant) %>% summarise(n_STR_1_winningradiant=sum(STR_1)) %>% filter(n_STR_1_winningradiant>=3)
 sum_n_STR_1_winningradiant <- nrow(players_csv4)
