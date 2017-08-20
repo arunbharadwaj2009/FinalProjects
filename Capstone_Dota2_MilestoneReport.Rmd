@@ -36,9 +36,9 @@ Valve Corporation is the developer of Dota 2. For Valve Corporation, it is of ut
 
 To solve this problem statement, we focus on heroes, combination of heroes in a team and inventory items.
 
-At the start of a game, each player is allowed to choose a hero. Heroes are divided into three types: strength, agility and intelligence. As the names suggest, each type of hero has certain advantages. We can try finding if certain types of heroes allow players to win more easily.
+At the start of a game, each player is allowed to choose a hero. Heroes are divided into three types: strength (STR), agility (AGI) and intelligence (INT). As the names suggest, each type of hero has certain advantages. We can try finding if certain types of heroes allow players to win more easily.
 
-Many Dota games are 5 on 5 multiplayer matches. There are two teams: radiant and dire. Players are allowed to choose any hero from the list of 113 heroes. A hero already chosen by another player cannot be chosen again. So, all ten heroes in a 5 on 5 multiplayer game are unique. For a team, there are no restrictions on the types of heroes they can choose, other than the requirement that all heroes in the game must be unique. A team is free to choose five strength or five agility or five intelligence heroes. 
+Many Dota games are 5 on 5 multiplayer matches. There are two teams: radiant and dire. Players are allowed to choose any hero from the list of 113 heroes. A hero already chosen by another player cannot be chosen again. So, all ten heroes in a 5 on 5 multiplayer game are unique. For a team, there are no restrictions on the types of heroes they can choose, other than the requirement that all heroes in the game must be unique. A team is free to choose any number of strength, agility and intelligence heroes. 
 
 Finally, each player can buy inventory items using the gold they get from killing creeps, destroying buildings and killing opponent heroes. The player and their hero can use this gold to buy items that improve the attack and defense ratings of the hero. Understanding if specific combinations of heroes and items give a player undue advantage can also help solve the problem statement.
 
@@ -47,7 +47,7 @@ Finally, each player can buy inventory items using the gold they get from killin
 match_csv, player_rating_csv and players_csv are the 3 most important csv files. 
 
 match_csv contains high level information about each match including duration, time to first blood, status of tower and barracks of two teams at end of game, geographical region where the game is taking place and the team that won the game (radiant or dire).
-```{r 1}
+```{r 1,echo=FALSE}
 match_csv <- read.csv("Data/match.csv")
 head(match_csv)
 ```
@@ -71,7 +71,7 @@ First part of data wrangling is to identify the most important csv files out of 
 Some hist functions were run on game_mode, negative_votes and positive_votes columns of match_csv file. Results from these hist functions showed that two of these variables had only one respective value. While game_mode had two values, the column is still considered insignificant to our analysis due to the nature of game_mode.  Since the three columns do not add value to our analysis, they are removed.
 
 ## Check if data points of some important variables make sense 
-In match_csv, the mean of first__blood_time returned a value of 93. Having played Dota, it is obvious that 93 minutes is too long for the mean of first blood time. A cursory internet search shows that in a sample tournament, first blood time was 3 minutes. It is safe to assume that the unit of first_blood_time is seconds. Close to 25000 observations have a first blood time less than 100 seconds. This seems improbable since on average, a player takes atleast 1.5 minutes to buy some inventory and head to center of the map.
+In match_csv, the mean of first__blood_time returned a value of 93. Having played Dota, it is obvious that 93 minutes is too long for the mean of first blood time. A cursory internet search shows that in a sample tournament, first blood time was 3 minutes. It is safe to assume that the unit of first_blood_time is seconds. Close to 25000 observations have a first blood time less than 100 seconds. This seems improbable since on average, a player takes atleast 1.5 minutes to buy some inventory and head to center of the map. While first_blood_time has a unit of seconds, there may be some errors in the way it is measured.
 
 ## Convert incorrect negative values to 0
 In multiple columns, there are negative value observations. For instance, some time and account id columns have negative values. This is incorrect and must be modified. Such incorrect negative values are made equal to 0.
@@ -88,7 +88,9 @@ For the sake of simplicity, columns with very high percentage of NA values are n
 In match_csv, a variable called cluster is shown in numeric. This variable shows the geographical region where the match is taking place. A cluster_csv file uses a key value pair, where key is numeric cluster variable and value is name of geographical region. Left_join is used to merge the match_csv and cluster_csv files to help with data visualization. Multiple such operations are performed to combine small csv`s with larger ones.
 
 ## Classify hero_id column in players_csv to STR, AGI and INT 
-For the ease of classification, analysis and predictive modelling, heroes are classified into STR, AGI and INT. The 113 heroes have already been classified by a former Springboard student, Louis Montague, who has posted this specific csv file on his github profile.
+For the ease of classification, analysis and predictive modelling, heroes are classified into STR (strength), AGI (agility) and INT (intelligence). The 113 heroes have already been classified by a former Springboard student, Louis Montague, who has posted this specific csv file on his github profile.
+
+https://github.com/DMzMin/LMS_Dota2/blob/master/hero_names_mod.csv
 
 ## Remove rows in players_csv and players_ratings_csv where account_id = 0
 account_id = 0 are rows where the player has chosen to remain anonymous and not disclose their identity. With account_id being a categorical variable, having too many rows with 0 id`s tends to distort our analysis, especially when combining csv files using account_id. So, while players_csv file is kept as it is, a new players_csv1 is created after removing rows with account_id as 0.
@@ -96,32 +98,31 @@ account_id = 0 are rows where the player has chosen to remain anonymous and not 
 ## Replace 0 to 4 and 128-132 in players_csv1 to Radiant and Dire
 A cursory internet search shows that the player_slot column in players_csv1 actually stands for the two dota teams: radiant and dire. While 0-4 is team radiant, 128-132 is team dire. These numbers are replaced with team names in the player_slot column of players_csv1.
 
-## Convert observations in columns named item_0 to item_5, in players_csv3, from numbers to class of items to reduce number of factors and enable building of a simple model
-item_0 to item_5 columns contain the ID`s of the items bought by players and their respective hero. Heroes have six slots on their dashboard to keep items. The 0 to 5 stands for the six slots. While the original dataset populates item_0 to item_5 columns using the item ID, this project will substantially broaden this classification and convert item_id to item_class. The items will be converted to STR (strength), AGI (agility), INT (intelligence), MOB (mobility), MISC (miscellaneous) etc. Also, some items combine multiple classes. These items are simply classified as 2 class, 3 class upto 5 class. This type of classification reduces number of factors to manageable limits.
+## Convert observations in columns item_0 to item_5 in players_csv3, from numbers to class of items to reduce number of factors
+item_0 to item_5 columns contain the ID`s of the items bought by players and their respective hero. Heroes have six slots on their dashboard to keep items. The 0 to 5 stands for the six slots. While the original dataset populates item_0 to item_5 columns using the item ID, we will classify items based on class of items. The items will be converted to STR (strength), AGI (agility), INT (intelligence), MOB (mobility), MISC (miscellaneous) etc. Also, some items combine multiple classes. These items are simply classified as 2 class (item that contains combination of 2 classes), 3 class upto 5 class. This type of classification reduces number of factors to manageable limits.
 
 item_class_1 is a newly created csv file, which duplicates item_ids_csv and adds a item_class column. The item_class column is populated with the class of items mentioned earlier. This is done using information extracted from the internet.
 
-item_class_1 is combined with players_csv2 using left join operation.
-
 ## player_ratings_csv2 created which only includes account_id`s that have played 5 games or more
-Human players that have played less than 5 games of Dota are poor predictors of skill and gameplay fairness. player_ratings_csv2 is created that only contains players that have played more than 5 games.
+Human players that have played less than 5 games of Dota are poor predictors of skill and gameplay fairness. player_ratings_csv2 is created that only contains players who have played more than 5 games.
 
 # Exploratory Data Analysis
 
 ## Hero Stats
-players_csv has detailed information about the player, the hero they chose and their in-game performance. This information is grouped by hero class, which are STR/INT/AGI. Further, all stats are normalized such that a particular stat of STR hero plus AGI hero plus INT hero equals zero. This operation allows us to view all stats on a single heatmap. The code and the heatmap is shown below
-```{r 4}
+players_csv has detailed information about the player, the hero they chose and their in-game performance. This information is grouped by hero class, which are STR/INT/AGI. Further, all stats are normalized such that a particular stat of STR hero plus AGI hero plus INT hero equals one. This operation allows us to view all stats on a single heatmap. The code and the heatmap is shown below
+```{r 4,echo=FALSE}
 Scaled_Stats_by_hero_type_m <- read.csv("Data/Scaled_Stats_by_hero_type_m.csv")
 
 ggplot(Scaled_Stats_by_hero_type_m, aes(x=Var1,y=Var2,fill=value)) + geom_tile() + labs(x="Type of Hero",y="Stats") + scale_fill_gradient(low="white",high="red")
 
 ```
+
 ## Percentage of Wins
 While total_wins is available for each account_id, simply looking at total_wins is inadequate. More accurate is to look at percentage_wins. This is possible since we know both total_wins and total_matches.
 
 Using this metric, we plot a histogram of percentage of wins. Highest occurence of percentage_wins is 0.5, showing that maximum players win half their games.
 
-```{r 5}
+```{r 5,echo=FALSE}
 
 players_ratings_csv2 <- read.csv("Data/players_ratings_csv2.csv")
 
@@ -132,19 +133,21 @@ ggplot(players_ratings_csv2,aes(percentage_wins)) +geom_histogram(aes(y=..densit
 ```
 
 ## Correlation between trueskill_mu and percentage_wins
-trueskill_mu is a fan defined measure of player skill. To check its accuracy, we correlate it with percentage_wins. Graph shows that higher skill level implies higher win percentage. Since player skill is hard to measure, a standard deviation measure of player ability is included. The different colors of the below dots gives the different standard deviations. 
+trueskill_mu is a Microsoft Research algorithm that measures player skill. To check its accuracy, we correlate it with percentage_wins. Graph shows that higher skill level implies higher win percentage. Since player skill is hard to measure, a standard deviation measure of player ability is included. The different colors of the below dots gives the different standard deviations. 
 
-```{r 6}
+```{r 6,echo=FALSE}
 
 
-# Scatter plot of trueskill_mu and percentage_wins in players_ratings_csv2. trueskill_sigma is assigned to color attribute. Both trueskill attributes are calculated by Dota fans and not by Valve corporation. While trueskill_mu is indicator of player`s ability, with higher value implying better player, trueskill_sigma is the uncertainty in the trueskill_mu measure. As expected, skill and win percentage are correlated. 
+# Scatter plot of trueskill_mu and percentage_wins in players_ratings_csv2. trueskill_sigma is assigned to color attribute. While trueskill_mu is indicator of player`s ability, with higher value implying better player, trueskill_sigma is the uncertainty in the trueskill_mu measure. As expected, skill and win percentage are correlated. 
 
 ggplot(players_ratings_csv2,aes(x=trueskill_mu,y=percentage_wins,col=trueskill_sigma)) +geom_point() + geom_jitter(shape=1)
 ```
 
-## Boxplot of item types and hero levels at end of game.  Since a hero can have 6 items (item_0 to item_5), there are 6 different box plots
+## Boxplot of item types and hero levels at end of game
 
 Below plot, drawn between item_0 and hero level, shows the Dam (Damage) item type to have highest level median, followed by Disable. Int item types have the lowest median level.
+
+
 ```{r 7,echo=FALSE}
 players_csv2 <- read.csv("Data/players_csv2.csv")
 function_boxplot_level_itemclass <- function(a){ggplot(players_csv2,aes(x=a,y=level)) + geom_boxplot() + theme(axis.text.x=element_text(angle=-90)) + labs(x="Item types bought by Hero",y="Hero level at game end")}
@@ -157,11 +160,11 @@ Similar plots were made for item_1 to item_5 versus hero level. All plots had ve
 
 Based on this, it can be inferred that Damage and Disable class items lead to the highest hero median level while Int item types lead to the lowest hero median level. The opposite of this statement could also be true. It is possible that Damage and Disable items are late game items that can only be bought by heroes that have substantially levelled up. The next few sections will try to infer if higher hero levels are caused by specific items or if heroes are able to buy these specific items only after reaching those higher levels.
 
-## Lineplot of the percentage of items acquired by each hero type for each item slot location in hero inventory
+## Lineplot of the percentage of items acquired by each hero type for each item slot location
 
 Below line plot shows percentage of item classes acquired by each hero type. For instance, more than 35% of AGI heroes acquire 2 Class items in the item_0 inventory slot. The trend for different item slots is similar, as seen from the shape of the different line graphs. 
 
-```{r 8}
+```{r 8,echo=FALSE}
 item_and_hero_m <- read.csv("Data/item_and_hero_m.csv")
 
 ggplot(item_and_hero_m,aes(x=new,y=value,colour=variable,group=1)) + geom_point() + geom_line(aes(group=variable)) + theme(axis.text.x=element_text(angle=-90)) + labs(x="Item class of the respective hero type",y="Percentage of observations") 
@@ -170,11 +173,11 @@ ggplot(item_and_hero_m,aes(x=new,y=value,colour=variable,group=1)) + geom_point(
 
 ## Does high median hero level lead to purchase of damage/disable items or does purchase of damage/disable items lead to high median hero level?
 
-The above line graph was obtained after excluding observations that constituted less than 5% of total observations per hero. This filter excluded observations in which heroes solely chose damage or disable items. If the strategy of buying solely damage or disable  items were successfull, it is likely that more players would have chosen to buy standalone damage or disable items. This graph shows that only very few players chose to buy these items. So, it can be concluded that high median level for heroes that bought damage and disable items is due to the reasoning that damage and disable items are only available at these higher levels and not the other way.
+The above line graph was obtained after excluding item classes that constituted less than 5% of total observations per hero. Since this filter has excluded damage or disable items, it is obvious that heroes bought standalone damage or disable items less than 5% of the time. If the strategy of buying solely damage or disable items were successfull, it is likely that more players would have chosen to buy standalone damage or disable items. This graph shows that only very few players chose to buy these items. So, it is concluded that only heroes that have already attained high levels buy damage or disable items. Buying damage or disable items cannot be attributed as a reason for high hero level.
 
 ## Identify heroes that win most games
 
-```{r 9}
+```{r 9,echo=FALSE}
 players_csv3_winning_heroes_radiant <- read.csv("Data/players_csv3_winning_heroes_radiant.csv")
 
 players_csv3_winning_heroes_dire <- read.csv("Data/players_csv3_winning_heroes_dire.csv")
@@ -183,24 +186,30 @@ ggplot(na.omit(players_csv3_winning_heroes_radiant),aes(x=winning_heroes_radiant
 
 ggplot(na.omit(players_csv3_winning_heroes_dire),aes(x=winning_heroes_dire)) + geom_histogram(stat="count")
 ```
+
+
 INT heroes have won maximum number of games followed by STR heroes. This trend is the same for both radiant and dire teams.
 
 # Identify heroes that have highest probability of winning
 
-```{r 10}
+```{r 10,echo=FALSE}
 Prob_Hero_Winning <- read.csv("Data/Prob_Hero_Winning.csv")
 
 barplot(Prob_Hero_Winning$x,main="Probability of winning for each hero type",names.arg = c("INT","AGI","STR"))
 
 ```
+
+
 STR heroes have highest probability of winning, followed by AGI and then INT. 
 
 ## Team hero combinations and winnability
 
-```{r 11}
+```{r 11,echo=FALSE}
 Team_Hero_Winning <- read.csv("Data/Team_Hero_Winning.csv")
 
 barplot(Team_Hero_Winning$x,main="Total team wins where team had >=3 heroes of same type",names.arg = c("STR","AGI","INT"))
 
 ```
+
+
 Teams that have combination of >=3 INT heroes win more games, followed by teams that have combination of >= 3 STR heroes.
