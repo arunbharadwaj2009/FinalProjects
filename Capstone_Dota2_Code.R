@@ -130,6 +130,7 @@ players_csv2$item_name <- NULL
 #}
 
 #function_item_id_to_item_class(item_0)
+# Also tried removing as.character(a) and inserting function argument as "item_0" but did not work
 
 # Export players_csv2 for markdown
 write.csv(players_csv2,file="players_csv2.csv")
@@ -209,7 +210,7 @@ function_boxplot_level_itemclass(players_csv2$item_5)
 # Barplot of item_0 to item_5 versus hero type
 
 #function_item_and_hero <- function(data=players_csv2,c){
-#item_and_hero <- data %>% group_by_(Class,as.factor(c)) %>% tally() 
+#item_and_hero <- data %>% count(Class,c) %>% group_by(Class) 
 #item_and_hero <- item_and_hero %>% group_by_(Class) %>% mutate(percentage=n/sum(n)*100)
 #item_and_hero_1 <- item_and_hero %>% filter(percentage > 5)
 #ggplot(item_and_hero_1,aes(x=Class,y=percentage)) + geom_bar(stat='identity',position='dodge')
@@ -296,7 +297,8 @@ barplot(Prob_Hero_Winning,main="Probability of winning for each hero type",names
 
 # Team hero combinations and winnability
 
-## For sake of simplicity find out number of wins by teams that >= 3 STR or >= 3 AGI or >= 3 INT heroes. Find out which of these 3 combinations has highest winnability
+## For sake of simplicity find out number of wins by teams that have >= 3 STR or >= 3 AGI or >= 3 INT heroes. 
+## Find out which of these 3 combinations has highest winnability
 
 players_csv4 <- players_csv3 %>% mutate(STR_1 = case_when(winning_heroes_radiant=="STR" ~ 1)) %>% group_by(match_id,winning_heroes_radiant) %>% summarise(n_STR_1_winningradiant=sum(STR_1)) %>% filter(n_STR_1_winningradiant>=3)
 sum_n_STR_1_winningradiant <- nrow(players_csv4)
