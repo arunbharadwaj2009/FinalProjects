@@ -87,7 +87,6 @@ For the sake of simplicity, columns with very high percentage of NA values are n
 ## Check if some small csv files can be combined with larger csv files to make it easier to visualize data
 In match_csv, a variable called cluster is shown in numeric. This variable shows the geographical region where the match is taking place. A cluster_csv file uses a key value pair, where key is numeric cluster variable and value is name of geographical region. Left_join is used to merge the match_csv and cluster_csv files to help with data visualization. Multiple such operations are performed to combine small csv`s with larger ones.
 
-
 ## Classify hero_id column in players_csv to STR, AGI and INT 
 For the ease of classification, analysis and predictive modelling, heroes are classified into STR, AGI and INT. The 113 heroes have already been classified by a former Springboard student, Louis Montague, who has posted this specific csv file on his github profile.
 
@@ -173,3 +172,35 @@ ggplot(item_and_hero_m,aes(x=new,y=value,colour=variable,group=1)) + geom_point(
 
 The above line graph was obtained after excluding observations that constituted less than 5% of total observations per hero. This filter excluded observations in which heroes solely chose damage or disable items. If the strategy of buying solely damage or disable  items were successfull, it is likely that more players would have chosen to buy standalone damage or disable items. This graph shows that only very few players chose to buy these items. So, it can be concluded that high median level for heroes that bought damage and disable items is due to the reasoning that damage and disable items are only available at these higher levels and not the other way.
 
+## Identify heroes that win most games
+
+```{r 9}
+players_csv3_winning_heroes_radiant <- read.csv("Data/players_csv3_winning_heroes_radiant.csv")
+
+players_csv3_winning_heroes_dire <- read.csv("Data/players_csv3_winning_heroes_dire.csv")
+
+ggplot(na.omit(players_csv3_winning_heroes_radiant),aes(x=winning_heroes_radiant)) + geom_histogram(stat="count")
+
+ggplot(na.omit(players_csv3_winning_heroes_dire),aes(x=winning_heroes_dire)) + geom_histogram(stat="count")
+```
+INT heroes have won maximum number of games followed by STR heroes. This trend is the same for both radiant and dire teams.
+
+# Identify heroes that have highest probability of winning
+
+```{r 10}
+Prob_Hero_Winning <- read.csv("Data/Prob_Hero_Winning.csv")
+
+barplot(Prob_Hero_Winning$x,main="Probability of winning for each hero type",names.arg = c("INT","AGI","STR"))
+
+```
+STR heroes have highest probability of winning, followed by AGI and then INT. 
+
+## Team hero combinations and winnability
+
+```{r 11}
+Team_Hero_Winning <- read.csv("Data/Team_Hero_Winning.csv")
+
+barplot(Team_Hero_Winning$x,main="Total team wins where team had >=3 heroes of same type",names.arg = c("STR","AGI","INT"))
+
+```
+Teams that have combination of >=3 INT heroes win more games, followed by teams that have combination of >= 3 STR heroes.

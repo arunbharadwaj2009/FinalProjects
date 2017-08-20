@@ -282,8 +282,15 @@ players_csv3$radiant_win <- as.logical(players_csv3$radiant_win)
 players_csv3 <- players_csv3 %>% select(player_slot,radiant_win,Class,match_id) %>% mutate(winning_heroes_radiant=case_when(radiant_win==TRUE & player_slot=="Radiant" & Class == "STR" ~ "STR",radiant_win==TRUE & player_slot=="Radiant" & Class == "AGI" ~ "AGI",radiant_win==TRUE & player_slot=="Radiant" & Class == "INT" ~ "INT"))
 players_csv3 <- players_csv3 %>% mutate(winning_heroes_dire=case_when(radiant_win==FALSE & player_slot=="Dire" & Class == "STR" ~ "STR",radiant_win==FALSE & player_slot=="Dire" & Class == "AGI" ~ "AGI",radiant_win==FALSE & player_slot=="Dire" & Class == "INT" ~ "INT"))
 
-ggplot(na.omit(players_csv3[,"winning_heroes_radiant"]),aes(x=winning_heroes_radiant)) + geom_histogram(stat="count")
-ggplot(na.omit(players_csv3[,"winning_heroes_dire"]),aes(x=winning_heroes_dire)) + geom_histogram(stat="count")
+players_csv3_winning_heroes_radiant <- players_csv3 %>% select(winning_heroes_radiant)
+players_csv3_winning_heroes_dire <- players_csv3 %>% select(winning_heroes_dire)
+
+ggplot(na.omit(players_csv3_winning_heroes_radiant),aes(x=winning_heroes_radiant)) + geom_histogram(stat="count")
+ggplot(na.omit(players_csv3_winning_heroes_dire),aes(x=winning_heroes_dire)) + geom_histogram(stat="count")
+
+# Export players_csv3_winning_heroes_radiant and players_csv3_winning_heroes_dire for markdown
+write.csv(players_csv3_winning_heroes_radiant,file = "players_csv3_winning_heroes_radiant.csv")
+write.csv(players_csv3_winning_heroes_dire,file = "players_csv3_winning_heroes_dire.csv")
 
 # Identify heroes that have the highest probability of winning
 
@@ -294,6 +301,9 @@ Prob_STR_Winning <- sum((players_csv3$winning_heroes_radiant == "STR"),na.rm=TRU
 Prob_Hero_Winning <- c(Prob_Int_Winning,Prob_AGI_Winning,Prob_STR_Winning)
 
 barplot(Prob_Hero_Winning,main="Probability of winning for each hero type",names.arg = c("INT","AGI","STR"))
+
+# Export Prob_Hero_Winning for markdown
+write.csv(Prob_Hero_Winning,file="Prob_Hero_Winning.csv")
 
 # Team hero combinations and winnability
 
@@ -330,5 +340,8 @@ sum_n_AGI_winning <- sum_n_AGI_1_winningradiant + sum_n_AGI_1_winningdire
 sum_n_INT_winning <- sum_n_INT_1_winningradiant + sum_n_INT_1_winningdire
 
 Team_Hero_Winning <- c(sum_n_STR_winning,sum_n_AGI_winning,sum_n_INT_winning)
+
+# Export Team_Hero_Winning for markdown
+write.csv(Team_Hero_Winning,file="Team_Hero_Winning.csv")
 
 barplot(Team_Hero_Winning,main="Total team wins where team had >=3 heros of same type",names.arg = c("STR","AGI","INT"))
