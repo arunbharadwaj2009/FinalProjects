@@ -4,6 +4,7 @@ library(ggplot2)
 library(reshape2)
 library(xlsx)
 library(readr)
+library(corrplot)
 
 # Input all required csv files 
 match_csv <- read_csv("match.csv")
@@ -345,3 +346,45 @@ Team_Hero_Winning <- c(sum_n_STR_winning,sum_n_AGI_winning,sum_n_INT_winning)
 write.csv(Team_Hero_Winning,file="Team_Hero_Winning.csv")
 
 barplot(Team_Hero_Winning,main="Total team wins where team had >=3 heros of same type",names.arg = c("STR","AGI","INT"))
+
+## Machine Learning
+
+# Run linear regression to find relation between trueskill_mu and other variables
+  # Combine trueskill_mu variable with players_csv2 since players_csv2 has a lot of useful information about specific player
+    
+    # In players_csv2, there are many instances where same player has played multiple games. 
+    # First remove columns that don`t add value to our analysis
+players_csv2_VariablesToBeRemoved <- c("match_id","hero_id","stuns","gold_per_min","xp_per_min","leaver_status","gold_other","gold_death","gold_sell")
+players_csv2_LR <- players_csv2 %>% select(-one_of(players_csv2_VariablesToBeRemoved))
+players_csv2_LR <- players_csv2_LR[,-(20:35)]
+players_csv2_LR <- players_csv2_LR[-(21:26)]
+
+    # Develop two new columns. First column assigns 1 if player played as Radiant. Second column assigns 1 if player played as Dire
+players_csv2_LR <- players_csv2_LR %>% mutate(player_slot_Radiant=case_when(player_slot=="Radiant"~1))
+players_csv2_LR <- players_csv2_LR %>% mutate(player_slot_Dire=case_when(player_slot=="Dire"~1))    
+
+    # Develop three new columns. First column assigns 1 if player chose STR hero. Second column assigns 1 if player chose AGI hero. Third column assigns 1 if players chose INT hero.
+players_csv2_LR <- players_csv2_LR %>% mutate(Class_STR=case_when(Class=="STR"~1))
+players_csv2_LR <- players_csv2_LR %>% mutate(Class_AGI=case_when(Class=="AGI"~1))
+players_csv2_LR <- players_csv2_LR %>% mutate(Class_INT=case_when(Class=="INT"~1))
+
+    # Remove player_slot and Class columns since they are redundant now
+players_csv2_LR$player_slot <- NULL
+players_csv2_LR$Class <- NULL
+
+    # Convert all NA`s to 0`
+players_csv2_LR[is.na(players_csv2_LR)] <- 0
+
+    # Aggregate all values so that any given account_id has only value of each respective column
+players_csv2_LR_1 <- players_csv2_LR %>% group_by(account_id) %>% summarise(gold=mean(gold),gold_spent=mean(gold_spent),kills=mean(kills),deaths=mean(deaths),assists=mean(assists),denies=mean(denies),last_hits=mean(last_hits),hero_damage=mean(hero_damage),hero_healing=mean(hero_healing),tower_damage=mean(tower_damage),level=mean(level),xp_hero=mean(xp_hero),xp_creep=mean(xp_creep),xp_other=mean(xp_other),gold_destroying_structure=mean(gold_destroying_structure),gold_killing_heros=mean(gold_killing_heros),gold_killing_creeps=mean(gold_killing_creeps),player_slot_Radiant=sum(player_slot_Radiant),player_slot_Dire=sum(player_slot_Dire),Class_STR=sum(Class_STR),Class_AGI=sum(Class_AGI),Class_INT=sum(Class_INT))
+
+    # Combine players_csv2_LR_1 with player_ratings_csv2 but leave out cases where account_id`s don`t match
+Combined_LR_1 <- inner_join(player_ratings_csv2,players_csv2_LR_1,by="account_id")
+
+    # Combined_LR_1 dataframe does not need account_id anymore
+Combined_LR_1$account_id <- NULL    
+
+    # Assuming that trueskill_mu is dependant variable, find if independant variables are correlated
+Combined_LR_1_cor <- cor(Combined_LR_1[,-(23:27)])
+
+corrplot(Combined_LR_1_cor,method="number",tl.cex=0.5)
