@@ -387,4 +387,14 @@ Combined_LR_1$account_id <- NULL
     # Assuming that trueskill_mu is dependant variable, find if independant variables are correlated
 Combined_LR_1_cor <- cor(Combined_LR_1[,-(23:27)])
 
-corrplot(Combined_LR_1_cor,method="number",tl.cex=0.5)
+    # Below code was taken from https://codedump.io/share/BSdmR40dKSWs/1/how-to-change-font-size-of-the-correlation-coefficient-in-corrplot since font size of corrplot without these changes was too big and not clear 
+cex.before <- par("cex")
+par(cex = 0.5)
+corrplot(Combined_LR_1_cor,method="color",insig="blank",addCoef.col = "grey",order="AOE",tl.cex=1/par("cex"),cl.cex=1/par("cex"),addCoefasPercent = TRUE)
+par(cex = cex.before)
+    # From corrplot (where correlation is given as percentage instead of -1 to +1)
+    # we find that total_wins and total_matches have high negative correlation with trueskill_sigma.
+    # total_wins and total_matches,trueskill_mu and percentage_wins,xp_hero and gold_killing_heroes, 
+    # xp_hero and level,gold_killing_heroes and kills, kills and hero_damage, level and gold_spent,level and xp_creep, 
+    # gold_spent and last hits, gold_spent and gold_killing_creeps, xp_creep and last hits, xp_creep and gold_killing_creeps,
+    # last_hits and gold_killing_creeps have high positive correlation.
