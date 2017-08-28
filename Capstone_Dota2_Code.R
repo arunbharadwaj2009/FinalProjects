@@ -496,3 +496,11 @@ corrplot(Combined_LogR_2_cor,method="color",insig="blank",addCoef.col = "grey",o
     # Negatively correlated pairs are (barracks_status_dire,barracks_status_radiant),
     # (barracks_status_radiant,tower_status_dire), (tower_status_radiant,barracks_status_dire)
     # and (tower_status_radiant,tower_status_dire)
+
+    # Following columns are removed due to correlation: tower_status_radiant,barracks_status_radiant,
+    # tower_status_dire, barracks_status_dire, level, assists, gold_destroying_structure
+
+Remove_Correlated_Columns_2 <- c("tower_status_radiant","barracks_status_radiant","tower_status_dire","barracks_status_dire", "level", "assists", "gold_destroying_structure")
+
+Combined_LogR_3 <- Combined_LogR_2 %>% select(-one_of(Remove_Correlated_Columns_2))
+Combined_LogR_3$start_time <- NULL
