@@ -500,7 +500,11 @@ corrplot(Combined_LogR_2_cor,method="color",insig="blank",addCoef.col = "grey",o
     # Following columns are removed due to correlation: tower_status_radiant,barracks_status_radiant,
     # tower_status_dire, barracks_status_dire, level, assists, gold_destroying_structure
 
+    # Remove correlated columns and some other columns 
 Remove_Correlated_Columns_2 <- c("tower_status_radiant","barracks_status_radiant","tower_status_dire","barracks_status_dire", "level", "assists", "gold_destroying_structure")
 
 Combined_LogR_3 <- Combined_LogR_2 %>% select(-one_of(Remove_Correlated_Columns_2))
 Combined_LogR_3$start_time <- NULL
+  
+    # Change radiant_win == TRUE to 1 and FALSE to 0
+Combined_LogR_3 <- Combined_LogR_3 %>% mutate(radiant_win = case_when(radiant_win == "True" ~ 1, radiant_win == "False" ~ 0))
