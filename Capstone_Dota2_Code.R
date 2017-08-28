@@ -6,6 +6,8 @@ library(xlsx)
 library(readr)
 library(corrplot)
 library(broom)
+library(Cairo)
+library(cairoDevice)
 
 # Input all required csv files 
 match_csv <- read_csv("match.csv")
@@ -391,7 +393,7 @@ Combined_LR_1_cor <- cor(Combined_LR_1[,-(23:27)])
     # Below code was taken from https://codedump.io/share/BSdmR40dKSWs/1/how-to-change-font-size-of-the-correlation-coefficient-in-corrplot since font size of corrplot without these changes was too big and not clear 
 cex.before <- par("cex")
 par(cex = 0.5)
-corrplot(Combined_LR_1_cor,method="color",insig="blank",addCoef.col = "grey",order="AOE",tl.cex=1/par("cex"),cl.cex=1/par("cex"),addCoefasPercent = TRUE)
+corrplot(Combined_LR_1_cor,method="color",insig="blank",addCoef.col = "grey",order="AOE",cl.cex=0.5,tl.cex = 0.5,addCoefasPercent = TRUE,number.cex = 0.5)
 par(cex = cex.before)
     # From corrplot (where correlation is given as percentage instead of -1 to +1)
     # we find that total_wins and total_matches have high negative correlation with trueskill_sigma.
@@ -485,7 +487,7 @@ Combined_LogR_2_cor <- cor(Combined_LogR_2[,-c(1,2,18:21,28:30)])
         # Below code was taken from https://codedump.io/share/BSdmR40dKSWs/1/how-to-change-font-size-of-the-correlation-coefficient-in-corrplot 
         # since font size of corrplot without these changes was too big and not clear 
 #corrplot(Combined_LogR_2_cor,method="number",insig="blank",addCoef.col = "grey",order="AOE",tl.cex=1/par("cex"),cl.cex=1/par("cex"),addCoefasPercent = TRUE)
-corrplot(Combined_LogR_2_cor,method="color",order="AOE",cl.cex=2)
+corrplot(Combined_LogR_2_cor,method="color",insig="blank",addCoef.col = "grey",order="AOE",cl.cex=0.5,tl.cex = 0.5,addCoefasPercent = TRUE,number.cex = 0.5)
 
     # Positively correlated pairs are (tower_status_radiant,barracks_status_radiant),
     # (level,trueskill_mu),(tower_damage,gold_destroying_structure),(level,kills),
