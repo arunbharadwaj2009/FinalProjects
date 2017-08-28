@@ -426,5 +426,3 @@ par(mfrow=c(2,2))
 plot(LR_model_2)
 
 anova(LR_model_2)
-
-sum(((Combined_LR_2$trueskill_mu-fitted(LR_model_2))^2))
