@@ -5,6 +5,7 @@ library(reshape2)
 library(xlsx)
 library(readr)
 library(corrplot)
+library(broom)
 
 # Input all required csv files 
 match_csv <- read_csv("match.csv")
@@ -372,7 +373,7 @@ players_csv2_LR <- players_csv2_LR %>% mutate(Class_INT=case_when(Class=="INT"~1
 players_csv2_LR$player_slot <- NULL
 players_csv2_LR$Class <- NULL
 
-    # Convert all NA`s to 0`
+    # Convert all NA`s to 0
 players_csv2_LR[is.na(players_csv2_LR)] <- 0
 
     # Aggregate all values so that any given account_id has only value of each respective column
@@ -422,7 +423,74 @@ summary(LR_model_2)
 confint(LR_model_2)
 hist(residuals(LR_model_2))
 
-par(mfrow=c(2,2))
+par(mfrow=c(1,1))
 plot(LR_model_2)
+    # Export anova as dataframe using broom package
+LR_model_2_anova <- anova(LR_model_2)
+LR_model_2_anova_Export <- tidy(LR_model_2_anova)
+write.csv(LR_model_2_anova_Export,"LR_model_2_anova_Expert.csv")
 
-anova(LR_model_2)
+    # Export linear regression model as dataframe using broom package
+LR_model_2_Export <- tidy(LR_model_2)
+write.csv(LR_model_2_Export,"LR_model_2_Export.csv")
+
+# Logistic regression to predict probability of winning of radiant or dire teams
+
+    # From player_ratings_csv and players_csv, remove rows that have 0 account_id
+player_ratings_csv_LogR <- player_ratings_csv %>% filter(account_id>0)
+players_csv_LogR <- players_csv %>% filter(account_id>0)
+
+    # In players_csv_LogR, convert player_slot to 1 (Radiant) and 0 (Dire)
+players_csv_LogR <- players_csv_LogR %>% mutate(player_slot = case_when(player_slot == 0|player_slot == 1|player_slot == 2|player_slot == 3|player_slot == 4 ~ 1, player_slot == 128|player_slot == 129|player_slot == 130|player_slot == 131|player_slot == 132 ~ 0))
+
+    # Create new dataframe by combining players_csv_LogR and player_ratings_csv_LogR
+Combined_LogR <- inner_join(players_csv_LogR,player_ratings_csv_LogR,by="account_id")
+
+    # In this new dataframe, generate new column called trueskill_var. 
+    # We do this since we would eventually like to add variances. 
+    # Standard deviation cannot be added 
+Combined_LogR$trueskill_var <- Combined_LogR$trueskill_sigma^2
+
+    # Remove trueskill_sigma
+Combined_LogR$trueskill_sigma <- NULL
+
+    # Remove correlated variables from Combined_LogR dataframe. Use the same set of variables from linear regression
+    # Also remove other columns that don`t add value to analysis
+Remove_Correlated_Columns_1 <- c("total_wins","total_matches","xp_hero","gold_killing_heros","hero_damage","gold_spent","xp_creep","gold_killing_creeps")
+Combined_LogR <- Combined_LogR %>% select(-one_of(Remove_Correlated_Columns_1))
+
+Combined_LogR <- Combined_LogR[,-c(3,6,7,16:21,23,26,27,29:44)]
+
+    # Develop three new columns. First column assigns 1 if player chose STR hero. Second column assigns 1 if player chose AGI hero. Third column assigns 1 if players chose INT hero.
+Combined_LogR <- Combined_LogR %>% mutate(Class_STR=case_when(Class=="STR"~1))
+Combined_LogR <- Combined_LogR %>% mutate(Class_AGI=case_when(Class=="AGI"~1))
+Combined_LogR <- Combined_LogR %>% mutate(Class_INT=case_when(Class=="INT"~1))
+
+    # Now remove Class and account_id columns
+Combined_LogR$Class <- NULL
+Combined_LogR$account_id <- NULL
+    
+    # Covert all NA`s to 0`
+Combined_LogR[is.na(Combined_LogR)] <- 0
+
+    # Group by match_id and player_slot and summarize by adding observations
+Combined_LogR_1 <- Combined_LogR %>% group_by(match_id,player_slot) %>% summarise(gold=sum(gold),kills=sum(kills),deaths=sum(deaths),assists=sum(assists),denies=sum(denies),last_hits=sum(last_hits),stuns=sum(stuns),hero_healing=sum(hero_healing),tower_damage=sum(tower_damage),level=sum(level),xp_other=sum(xp_other),gold_other=sum(gold_other),gold_destroying_structure=sum(gold_destroying_structure),trueskill_mu=sum(trueskill_mu),trueskill_var=sum(trueskill_var),Class_STR=sum(Class_STR),Class_AGI=sum(Class_AGI),Class_INT=sum(Class_INT))
+
+    # Now combine Combined_LogR_1 and match_csv
+Combined_LogR_2 <- inner_join(Combined_LogR_1,match_csv,by="match_id")
+
+    # Find variables that are correlated
+Combined_LogR_2_cor <- cor(Combined_LogR_2[,-c(1,2,18:21,28:30)])
+
+        # Below code was taken from https://codedump.io/share/BSdmR40dKSWs/1/how-to-change-font-size-of-the-correlation-coefficient-in-corrplot 
+        # since font size of corrplot without these changes was too big and not clear 
+#corrplot(Combined_LogR_2_cor,method="number",insig="blank",addCoef.col = "grey",order="AOE",tl.cex=1/par("cex"),cl.cex=1/par("cex"),addCoefasPercent = TRUE)
+corrplot(Combined_LogR_2_cor,method="color",order="AOE",cl.cex=2)
+
+    # Positively correlated pairs are (tower_status_radiant,barracks_status_radiant),
+    # (level,trueskill_mu),(tower_damage,gold_destroying_structure),(level,kills),
+    # (assists,kills),(last_hits,level) and (tower_status_dire,barracks_status_dire)
+
+    # Negatively correlated pairs are (barracks_status_dire,barracks_status_radiant),
+    # (barracks_status_radiant,tower_status_dire), (tower_status_radiant,barracks_status_dire)
+    # and (tower_status_radiant,tower_status_dire)
