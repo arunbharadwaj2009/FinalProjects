@@ -394,7 +394,37 @@ corrplot(Combined_LR_1_cor,method="color",insig="blank",addCoef.col = "grey",ord
 par(cex = cex.before)
     # From corrplot (where correlation is given as percentage instead of -1 to +1)
     # we find that total_wins and total_matches have high negative correlation with trueskill_sigma.
+
     # total_wins and total_matches,trueskill_mu and percentage_wins,xp_hero and gold_killing_heroes, 
-    # xp_hero and level,gold_killing_heroes and kills, kills and hero_damage, level and gold_spent,level and xp_creep, 
-    # gold_spent and last hits, gold_spent and gold_killing_creeps, xp_creep and last hits, xp_creep and gold_killing_creeps,
-    # last_hits and gold_killing_creeps have high positive correlation.
+    # xp_hero and level,gold_killing_heroes and kills, kills and hero_damage, level and gold_spent,
+    # level and xp_creep, gold_spent and last hits, gold_spent and gold_killing_creeps, xp_creep and 
+    # last hits, xp_creep and gold_killing_creeps, last_hits and gold_killing_creeps have high positive 
+    # correlation.
+
+    # So, we remove columns total_wins,total_matches,percentage_wins,xp_hero,gold_killing_heroes,hero_damage,gold_spent,xp_creep and gold_killing_creeps.
+Remove_Correlated_Columns <- c("total_wins","total_matches","percentage_wins","xp_hero","gold_killing_heros","hero_damage","gold_spent","xp_creep","gold_killing_creeps")
+
+Combined_LR_2 <- Combined_LR_1 %>% select(-one_of(Remove_Correlated_Columns))
+
+    # Linear regression where trueskill_mu is dependant variable
+LR_model_1 <- lm(trueskill_mu ~ trueskill_sigma + gold + kills + deaths + assists + denies + last_hits + hero_healing + tower_damage + level + xp_other + gold_destroying_structure + player_slot_Radiant + player_slot_Dire + Class_STR + Class_AGI + Class_INT,data=Combined_LR_2)
+summary(LR_model_1)
+    # Summary of linear regression shows that denies, tower_damage, gold_destroying_structure, 
+    # player_slot_Radiant, player_slot_dire, Class_STR, Class_AGI, Class_INT are not significant
+
+    # Another linear regression after removing variables that were not significant
+    # Also, level and kills were removed since the model with these 2 variables 
+    # had Residuals-Fitted and Scale-Location plots where residuals were not random
+    # (high degree of parabolic shape)
+LR_model_2 <- lm(trueskill_mu ~ trueskill_sigma + gold + deaths + assists + last_hits + hero_healing  + xp_other,data=Combined_LR_2)
+summary(LR_model_2)
+
+confint(LR_model_2)
+hist(residuals(LR_model_2))
+
+par(mfrow=c(2,2))
+plot(LR_model_2)
+
+anova(LR_model_2)
+
+sum(((Combined_LR_2$trueskill_mu-fitted(LR_model_2))^2))
