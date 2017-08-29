@@ -527,6 +527,10 @@ LogR_model <- glm(radiant_win ~ gold + kills + deaths + denies + last_hits + stu
         # Perform Logistic regression after removing statistically insignificant variables
 LogR_model_1 <- glm(radiant_win ~ gold + kills + deaths + last_hits + hero_healing + tower_damage + duration,LogR_Train,family=binomial)
 
+        # Export logistic regression model as dataframe using broom model
+LogR_model_1_Export <- tidy(LogR_model_1)
+write.csv(LR_model_2_Export,"LogR_model_1_Export.csv")
+
         # Predict function to give us probability output of logistic regression model on training dataset
 pred_LogR_model_Train <- predict(object=LogR_model_1,type="response")
 summary(pred_LogR_model_Train)
