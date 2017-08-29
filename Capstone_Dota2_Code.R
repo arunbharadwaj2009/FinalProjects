@@ -9,6 +9,7 @@ library(broom)
 library(Cairo)
 library(cairoDevice)
 library(caTools)
+library(ROCR)
 
 # Input all required csv files 
 match_csv <- read_csv("match.csv")
@@ -513,11 +514,32 @@ Combined_LogR_3 <- Combined_LogR_3 %>% mutate(radiant_win = case_when(radiant_wi
     # Logistic Regression
 set.seed(100)
 
+        # Split data
 LogR_split <- sample.split(Combined_LogR_3$radiant_win,SplitRatio = 0.7)
 
+        # Assign split data into training and test sets
 LogR_Train <- subset(Combined_LogR_3,LogR_split == TRUE)
 LogR_Test <- subset(Combined_LogR_3,LogR_split == FALSE)
 
+        # Perform Logistic regression
 LogR_model <- glm(radiant_win ~ gold + kills + deaths + denies + last_hits + stuns + hero_healing + tower_damage + xp_other + gold_other + trueskill_mu + trueskill_var + Class_STR + Class_AGI + Class_INT + duration + first_blood_time + cluster,LogR_Train,family=binomial)
 
+        # Perform Logistic regression after removing statistically insignificant variables
 LogR_model_1 <- glm(radiant_win ~ gold + kills + deaths + last_hits + hero_healing + tower_damage + duration,LogR_Train,family=binomial)
+
+        # Predict function to give us probability output of logistic regression model on training dataset
+pred_LogR_model_Train <- predict(object=LogR_model_1,type="response")
+summary(pred_LogR_model_Train)
+
+        # tapply takes pred_LogR_model_Train probabilities and the corresponding values
+        # of LogR_Train$radiant_win (which has 0 or 1) and finds the final mean of
+        # probabilities for 0 and 1 respectively
+tapply(pred_LogR_model_Train,LogR_Train$radiant_win,mean)
+
+        # Generate confusion matrix 
+table(LogR_Train$radiant_win,pred_LogR_model_Train>=0.5)
+
+        # Generate ROC curve
+LogR_ROCR_Predict <- prediction(pred_LogR_model_Train,LogR_Train$radiant_win)
+LogR_ROCR_Perf <- performance(LogR_ROCR_Predict,"tpr","fpr")
+plot(LogR_ROCR_Perf,colorize=TRUE)
