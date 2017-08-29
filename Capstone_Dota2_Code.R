@@ -10,6 +10,8 @@ library(Cairo)
 library(cairoDevice)
 library(caTools)
 library(ROCR)
+library(rpart)
+library(rpart.plot)
 
 # Input all required csv files 
 match_csv <- read_csv("match.csv")
@@ -547,3 +549,21 @@ table(LogR_Train$radiant_win,pred_LogR_model_Train>=0.5)
 LogR_ROCR_Predict <- prediction(pred_LogR_model_Train,LogR_Train$radiant_win)
 LogR_ROCR_Perf <- performance(LogR_ROCR_Predict,"tpr","fpr")
 plot(LogR_ROCR_Perf,colorize=TRUE)
+
+# Decision tree to predict probability of winning of radiant or dire teams
+set.seed(200)
+     # Use same dataset used in logistic regression 
+Combined_Tree <- Combined_LogR_3
+
+     # Split dataset
+Combined_Tree_split <- sample.split(Combined_Tree$radiant_win,SplitRatio = 0.7)
+
+     # Assign split data into training and test datasets
+Combined_Tree_Train <- subset(Combined_Tree,Combined_Tree_split == TRUE)
+Combined_Tree_Test <- subset(Combined_Tree,Combined_Tree_split == FALSE)
+
+     # Build model
+Combined_Tree_Model <- rpart(radiant_win ~ gold + kills + deaths + denies + last_hits + stuns + hero_healing + tower_damage + xp_other + gold_other + trueskill_mu + trueskill_var + Class_STR + Class_AGI + Class_INT + first_blood_time + cluster + duration,Combined_Tree_Train,method="class",control=rpart.control(minbucket = 100))
+
+     # View tree
+prp(Combined_Tree_Model)
