@@ -8,6 +8,7 @@ library(corrplot)
 library(broom)
 library(Cairo)
 library(cairoDevice)
+library(caTools)
 
 # Input all required csv files 
 match_csv <- read_csv("match.csv")
@@ -508,3 +509,15 @@ Combined_LogR_3$start_time <- NULL
   
     # Change radiant_win == TRUE to 1 and FALSE to 0
 Combined_LogR_3 <- Combined_LogR_3 %>% mutate(radiant_win = case_when(radiant_win == "True" ~ 1, radiant_win == "False" ~ 0))
+
+    # Logistic Regression
+set.seed(100)
+
+LogR_split <- sample.split(Combined_LogR_3$radiant_win,SplitRatio = 0.7)
+
+LogR_Train <- subset(Combined_LogR_3,LogR_split == TRUE)
+LogR_Test <- subset(Combined_LogR_3,LogR_split == FALSE)
+
+LogR_model <- glm(radiant_win ~ gold + kills + deaths + denies + last_hits + stuns + hero_healing + tower_damage + xp_other + gold_other + trueskill_mu + trueskill_var + Class_STR + Class_AGI + Class_INT + duration + first_blood_time + cluster,LogR_Train,family=binomial)
+
+LogR_model_1 <- glm(radiant_win ~ gold + kills + deaths + last_hits + hero_healing + tower_damage + duration,LogR_Train,family=binomial)
