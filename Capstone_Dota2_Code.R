@@ -554,7 +554,9 @@ plot(LogR_ROCR_Perf,colorize=TRUE)
 set.seed(200)
      # Use same dataset used in logistic regression 
 Combined_Tree <- Combined_LogR_3
-
+Combined_Tree$match_id <- NULL
+Combined_Tree$player_slot <- NULL
+  
      # Split dataset
 Combined_Tree_split <- sample.split(Combined_Tree$radiant_win,SplitRatio = 0.7)
 
@@ -563,7 +565,7 @@ Combined_Tree_Train <- subset(Combined_Tree,Combined_Tree_split == TRUE)
 Combined_Tree_Test <- subset(Combined_Tree,Combined_Tree_split == FALSE)
 
      # Build model
-Combined_Tree_Model <- rpart(radiant_win ~ gold + kills + deaths + denies + last_hits + stuns + hero_healing + tower_damage + xp_other + gold_other + trueskill_mu + trueskill_var + Class_STR + Class_AGI + Class_INT + first_blood_time + cluster + duration,Combined_Tree_Train,method="class",control=rpart.control(minbucket = 100))
+Combined_Tree_Model <- rpart(radiant_win ~  .,Combined_Tree_Train,method="class",control=rpart.control(minbucket = 100))
 
      # View tree
 prp(Combined_Tree_Model)
