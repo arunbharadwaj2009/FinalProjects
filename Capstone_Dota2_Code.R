@@ -12,6 +12,10 @@ library(caTools)
 library(ROCR)
 library(rpart)
 library(rpart.plot)
+library(randomForest)
+library(party)
+library(caret)
+library(e1071)
 
 # Input all required csv files 
 match_csv <- read_csv("match.csv")
@@ -476,7 +480,7 @@ Combined_LogR <- Combined_LogR %>% mutate(Class_INT=case_when(Class=="INT"~1))
 Combined_LogR$Class <- NULL
 Combined_LogR$account_id <- NULL
     
-    # Covert all NA`s to 0`
+    # Covert all NA`s to 0
 Combined_LogR[is.na(Combined_LogR)] <- 0
 
     # Group by match_id and player_slot and summarize by adding observations
@@ -555,8 +559,8 @@ set.seed(200)
      # Use same dataset used in logistic regression 
 Combined_Tree <- Combined_LogR_3
 Combined_Tree$match_id <- NULL
-Combined_Tree$player_slot <- NULL
-  
+Combined_Tree$radiant_win <- as.factor(Combined_Tree$radiant_win)
+
      # Split dataset
 Combined_Tree_split <- sample.split(Combined_Tree$radiant_win,SplitRatio = 0.7)
 
@@ -565,7 +569,19 @@ Combined_Tree_Train <- subset(Combined_Tree,Combined_Tree_split == TRUE)
 Combined_Tree_Test <- subset(Combined_Tree,Combined_Tree_split == FALSE)
 
      # Build model
-Combined_Tree_Model <- rpart(radiant_win ~  .,Combined_Tree_Train,method="class",control=rpart.control(minbucket = 100))
+Combined_Tree_Model <- rpart(radiant_win ~  .,Combined_Tree_Train,method="class",control=rpart.control(minbucket = 25))
 
      # View tree
 prp(Combined_Tree_Model)
+
+# Cross validate tree
+    # First find optimal cp value
+fitControl <- trainControl(method="cv",number=10)
+cartGrid <- expand.grid(.cp=(1:50)*0.01)
+train(radiant_win ~ .,data=Combined_Tree_Train,method="rpart",trControl=fitControl,tuneGrid=cartGrid) 
+
+    # Use this cp in new tree
+Combined_Tree_Model_CP <- rpart(radiant_win ~ .,Combined_Tree_Train,method="class",control=rpart.control(cp=0.01))
+Combined_Tree_Model_CP_Predict <- predict(object=Combined_Tree_Model_CP,newdata=Combined_Tree_Test,type="class")
+table(Combined_Tree_Test$radiant_win,Combined_Tree_Model_CP_Predict)
+
