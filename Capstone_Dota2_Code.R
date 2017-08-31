@@ -398,11 +398,12 @@ Combined_LR_1$account_id <- NULL
     # Assuming that trueskill_mu is dependant variable, find if independant variables are correlated
 Combined_LR_1_cor <- cor(Combined_LR_1[,-(23:27)])
 
+    # Export Combined_LR_1 for markdown
+write.csv(Combined_LR_1,"Combined_LR_1.csv")
+
     # Below code was taken from https://codedump.io/share/BSdmR40dKSWs/1/how-to-change-font-size-of-the-correlation-coefficient-in-corrplot since font size of corrplot without these changes was too big and not clear 
-cex.before <- par("cex")
-par(cex = 0.5)
 corrplot(Combined_LR_1_cor,method="color",insig="blank",addCoef.col = "grey",order="AOE",cl.cex=0.5,tl.cex = 0.5,addCoefasPercent = TRUE,number.cex = 0.5)
-par(cex = cex.before)
+
     # From corrplot (where correlation is given as percentage instead of -1 to +1)
     # we find that total_wins and total_matches have high negative correlation with trueskill_sigma.
 
@@ -416,6 +417,9 @@ par(cex = cex.before)
 Remove_Correlated_Columns <- c("total_wins","total_matches","percentage_wins","xp_hero","gold_killing_heros","hero_damage","gold_spent","xp_creep","gold_killing_creeps")
 
 Combined_LR_2 <- Combined_LR_1 %>% select(-one_of(Remove_Correlated_Columns))
+
+    # Export Combined_LR_2 for markdown
+write.csv(Combined_LR_2,"Combined_LR_2.csv")
 
     # Linear regression where trueskill_mu is dependant variable
 LR_model_1 <- lm(trueskill_mu ~ trueskill_sigma + gold + kills + deaths + assists + denies + last_hits + hero_healing + tower_damage + level + xp_other + gold_destroying_structure + player_slot_Radiant + player_slot_Dire + Class_STR + Class_AGI + Class_INT,data=Combined_LR_2)
@@ -489,12 +493,15 @@ Combined_LogR_1 <- Combined_LogR %>% group_by(match_id,player_slot) %>% summaris
     # Now combine Combined_LogR_1 and match_csv
 Combined_LogR_2 <- inner_join(Combined_LogR_1,match_csv,by="match_id")
 
+    # Export Combined_LogR_2 for markdown
+write.csv(Combined_LogR_2,"Combined_LogR_2.csv")
+
     # Find variables that are correlated
 Combined_LogR_2_cor <- cor(Combined_LogR_2[,-c(1,2,18:21,28:30)])
 
         # Below code was taken from https://codedump.io/share/BSdmR40dKSWs/1/how-to-change-font-size-of-the-correlation-coefficient-in-corrplot 
         # since font size of corrplot without these changes was too big and not clear 
-#corrplot(Combined_LogR_2_cor,method="number",insig="blank",addCoef.col = "grey",order="AOE",tl.cex=1/par("cex"),cl.cex=1/par("cex"),addCoefasPercent = TRUE)
+
 corrplot(Combined_LogR_2_cor,method="color",insig="blank",addCoef.col = "grey",order="AOE",cl.cex=0.5,tl.cex = 0.5,addCoefasPercent = TRUE,number.cex = 0.5)
 
     # Positively correlated pairs are (tower_status_radiant,barracks_status_radiant),
@@ -517,6 +524,9 @@ Combined_LogR_3$start_time <- NULL
     # Change radiant_win == TRUE to 1 and FALSE to 0
 Combined_LogR_3 <- Combined_LogR_3 %>% mutate(radiant_win = case_when(radiant_win == "True" ~ 1, radiant_win == "False" ~ 0))
 
+    # Export Combined_LogR_3 for markdown
+write.csv(Combined_LogR_3,"Combined_LogR_3.csv")
+
     # Logistic Regression
 set.seed(100)
 
@@ -526,6 +536,9 @@ LogR_split <- sample.split(Combined_LogR_3$radiant_win,SplitRatio = 0.7)
         # Assign split data into training and test sets
 LogR_Train <- subset(Combined_LogR_3,LogR_split == TRUE)
 LogR_Test <- subset(Combined_LogR_3,LogR_split == FALSE)
+
+        # Export LogR_Train for markdown
+write.csv(LogR_Train,"LogR_Train.csv")
 
         # Perform Logistic regression
 LogR_model <- glm(radiant_win ~ gold + kills + deaths + denies + last_hits + stuns + hero_healing + tower_damage + xp_other + gold_other + trueskill_mu + trueskill_var + Class_STR + Class_AGI + Class_INT + duration + first_blood_time + cluster,LogR_Train,family=binomial)
@@ -567,6 +580,10 @@ Combined_Tree_split <- sample.split(Combined_Tree$radiant_win,SplitRatio = 0.7)
      # Assign split data into training and test datasets
 Combined_Tree_Train <- subset(Combined_Tree,Combined_Tree_split == TRUE)
 Combined_Tree_Test <- subset(Combined_Tree,Combined_Tree_split == FALSE)
+
+     # Export train and test datasets for markdown
+write.csv(Combined_Tree_Train,"Combined_Tree_Train.csv")
+write.csv(Combined_Tree_Train,"Combined_Tree_Test.csv")
 
      # Build model
 Combined_Tree_Model <- rpart(radiant_win ~  .,Combined_Tree_Train,method="class",control=rpart.control(minbucket = 25))
