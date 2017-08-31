@@ -16,6 +16,9 @@ library(randomForest)
 library(party)
 library(caret)
 library(e1071)
+library(arules)
+library(arulesViz)
+library(datasets)
 
 # Input all required csv files 
 match_csv <- read_csv("match.csv")
@@ -357,6 +360,54 @@ Team_Hero_Winning <- c(sum_n_STR_winning,sum_n_AGI_winning,sum_n_INT_winning)
 write.csv(Team_Hero_Winning,file="Team_Hero_Winning.csv")
 
 barplot(Team_Hero_Winning,main="Total team wins where team had >=3 heros of same type",names.arg = c("STR","AGI","INT"))
+
+# Market basket analysis or association rules
+
+    # Setup dataframe for performing association rules
+association_data <- players_csv2[,-c(1:44)]
+
+    # Gather dataframe so that data is long
+    # This is only for plotting item frequency and not for rule association
+    # Value=B is used to keep column header short since x-axis labels
+    # on frequency plot include column header
+association_data <- gather(association_data,key="A",value = "B",item_0:item_5)
+association_data$A <- NULL
+
+    # association_data1 created only to generate frequency plot
+    # We ensure that association_data1 does not have Class column
+association_data1 <- association_data
+association_data1$Class <- NULL
+
+    # Convert characters to factors
+association_data1 <- sapply(association_data1,as.factor)
+
+    # Convert to itemMatrix after removing Class column 
+    # since we do not want Class column in frequency plot
+association_data1 <- as.data.frame(association_data1)
+association_data1 <- as(association_data1,"transactions")
+
+    # Plot item frequency
+itemFrequencyPlot(association_data1,topN=15,type="absolute")
+
+    # New itemMatrix which includes Class column since for 
+    # rules, we want to include Class
+association_data2 <- players_csv2[,-c(1:44)]
+association_data2 <- as.data.frame(sapply(association_data2,as.factor))
+association_data2 <- as(association_data2,"transactions")
+
+  # Generate rules
+rules <- apriori(association_data2,parameter = list(supp=0.001,confidence=0.8))
+
+    # Sort and inspect rules
+options(digits=2)
+rules <- sort(rules,by="confidence",decreasing=TRUE)
+inspect(rules[1:10])
+
+    # Find rules that have Class=STR on right side. But use lower 
+    # confidence values since there are no high confidence rules with STR
+rules1 <- apriori(association_data2,parameter=list(supp=0.001,confidence=0.4),appearance=list(default="lhs",rhs="Class=STR"),control=list(verbose=F))
+rules1 <- sort(rules1,by="confidence",decreasing=TRUE)
+inspect(rules1[1:10])
 
 ## Machine Learning
 
