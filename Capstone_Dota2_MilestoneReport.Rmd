@@ -421,4 +421,20 @@ Final decision tree model gives an accuracy of (10466+12635)/(10466+2706+1569+12
 
 Results from the capstone project show that 
 
-1) Hero selection 
+1) The act of hero selection makes no difference to gameplay and winnability. This is proven by the fact that hero variables are not statistically significant in the linear and logistic regression models. 
+
+2) The act of team selection alone makes no difference to the probability of winning. This is inferred from the fact that radiant and dire variables are not statistically significant in the logistic regression model.
+
+3) Teams with >= 3 INT heroes have substantially higher probabilities of winning, followed by STR heroes. Team with >= 3 AGI heroes are at a very high disadvantage.
+
+4) trueskill_sigma variable is not used as a splitter variable in the decision tree. Similarly, in the scatter plot between trueskill_mu and percentage_wins where trueskill_sigma is used as color variable, the trueskill_sigma variable has some prominence in the lower left corner and upper right corner of the plot. Overall, there is no perceivable shape for trueskill_sigma in the scatter plot. 
+
+5) There is a very high probability of AGI heroes buying 2 Class items. As a matter of fact, rule association for AGI heroes is higher than both STR and INT heroes. Similarly, there is a very high probability of STR heroes buying Mob (mobility) items. This makes sense since STR heroes are slow moving. 
+
+# Some recommendations
+
+1) Given that duration is a significant variable in the logistic regression and is used twice as a splitter variable in the decision tree, it is important to ensure that game duration has no impact on game outcome. Logistic regression shows that duration has a negative co-efficient. So, lower duration games decrease radiant team`s probability of winning, giving dire teams an advantage. Instituting a bonus for radiant  teams in longer duration games can help overcome this bias.
+
+2) trueskill_sigma is not a splitter variable in the decision tree. trueskill_sigma does not have an impact on the scatter plot between trueskill_mu and percentage_wins. Interestingly, trueskill_sigma is significant in the linear regression where trueskill_mu is the predictor. It has a negative co-efficient, showing that higher sigma lowers trueskill_mu. The trueskill algorithm requires review in the context of Dota 2. 
+
+3) Teams with >=3 AGI heroes are at a significant disadvantage. A relook into the metrics of AGI heroes will be useful.
