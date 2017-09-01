@@ -596,10 +596,10 @@ write.csv(LogR_Train,"LogR_Train.csv")
 
         # Perform Logistic regression
 LogR_model <- glm(radiant_win ~ gold + kills + deaths + denies + last_hits + stuns + hero_healing + tower_damage + xp_other + gold_other + trueskill_mu + trueskill_var + Class_STR + Class_AGI + Class_INT + duration + first_blood_time + cluster,LogR_Train,family=binomial)
-
+summary(LogR_model)
         # Perform Logistic regression after removing statistically insignificant variables
 LogR_model_1 <- glm(radiant_win ~ gold + kills + deaths + last_hits + hero_healing + tower_damage + duration,LogR_Train,family=binomial)
-
+summary(LogR_model_1)
         # Export logistic regression model as dataframe using broom model
 LogR_model_1_Export <- tidy(LogR_model_1)
 write.csv(LR_model_2_Export,"LogR_model_1_Export.csv")
@@ -623,8 +623,11 @@ plot(LogR_ROCR_Perf,colorize=TRUE)
 
 # Decision tree to predict probability of winning of radiant or dire teams
 set.seed(200)
-     # Use same dataset used in logistic regression 
+     # Use same dataset used as in logistic regression 
 Combined_Tree <- Combined_LogR_3
+
+write.csv(Combined_Tree,file="Combined_Tree.csv")
+
 Combined_Tree$match_id <- NULL
 Combined_Tree$radiant_win <- as.factor(Combined_Tree$radiant_win)
 
@@ -636,8 +639,8 @@ Combined_Tree_Train <- subset(Combined_Tree,Combined_Tree_split == TRUE)
 Combined_Tree_Test <- subset(Combined_Tree,Combined_Tree_split == FALSE)
 
      # Export train and test datasets for markdown
-write.csv(Combined_Tree_Train,"Combined_Tree_Train.csv")
-write.csv(Combined_Tree_Train,"Combined_Tree_Test.csv")
+#write.csv(Combined_Tree_Train,file ="Combined_Tree_Train.csv")
+#write.csv(Combined_Tree_Train,file ="Combined_Tree_Test.csv")
 
      # Build model
 Combined_Tree_Model <- rpart(radiant_win ~  .,Combined_Tree_Train,method="class",control=rpart.control(minbucket = 25))
