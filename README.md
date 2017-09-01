@@ -6,8 +6,10 @@ For now, only the Dota 2 project is available since this is my only end to end d
 This project was used to satisfy the requirements for the Springboard Foundations of Data Science course.
 The project was completed in R, with a R markdown final report and presentation.
 
-Below links give you access to the R code, markdown final report, kaggle link to source data and the modified 
+Below links give you access to the markdown final report, kaggle link to source data and the modified 
 datasets used in the markdown. These links will ensure that my code and outputs are completely reproducible. 
+The R code and presentation can be found in the Final Projects repository itself, titled Capstone_Dota2_Code.R
+and Capstone_Dota2_PPT respectively.
 
 1) Capstone_Dota2
 
