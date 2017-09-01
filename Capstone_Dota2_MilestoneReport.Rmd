@@ -230,19 +230,9 @@ Teams that have combination of >=3 INT heroes win more games, followed by teams 
 Below plot shows that 2 Class items are the most commonly purchased items. This is followed by miscellaneous, mobility and health. 
 
 ```{r 12,echo=FALSE}
-    # Setup dataframe for performing association rules
-association_data <- players_csv2[,-c(1:44)]
 
-    # Gather dataframe so that data is long
-    # This is only for plotting item frequency and not for rule association
-    # Value=B is used to keep column header short since x-axis labels
-    # on frequency plot include column header
-association_data <- gather(association_data,key="A",value = "B",item_0:item_5)
-association_data$A <- NULL
+association_data1 <- read.csv("association_data1.csv")
 
-    # association_data1 created only to generate frequency plot
-    # We ensure that association_data1 does not have Class column
-association_data1 <- association_data
 association_data1$Class <- NULL
 
     # Convert characters to factors
@@ -303,7 +293,7 @@ Linear regression, logistic regression and decision tree is used in the machine 
 
 Before performing the linear regression, a correlation plot was generated.
 
-```{r 12,echo=FALSE}
+```{r 15,echo=FALSE}
 Combined_LR_1 <- read.csv("Data/Combined_LR_1.csv")
 
 Combined_LR_1_cor <- cor(Combined_LR_1[,-(23:27)])
@@ -315,7 +305,7 @@ corrplot(Combined_LR_1_cor,method="color",insig="blank",addCoef.col = "grey",ord
 
 trueskill_mu was predicted after removing all correlated variables. Following summary output was obtained.
 
-```{r 14,echo=FALSE}
+```{r 16,echo=FALSE}
 Combined_LR_2 <- read.csv("Data/Combined_LR_2.csv")
 LR_model_1 <- lm(trueskill_mu ~ trueskill_sigma + gold + kills + deaths + assists + denies + last_hits + hero_healing + tower_damage + level + xp_other + gold_destroying_structure + player_slot_Radiant + player_slot_Dire + Class_STR + Class_AGI + Class_INT,data=Combined_LR_2)
 summary(LR_model_1)
@@ -327,14 +317,14 @@ Output shows a very low R^2 value for the model. Also, the player`s team choice 
 
 All variables that were statistically not significant in the first LR model were removed and the second model was built. FOllowing output was obtained. 
 
-```{r 14,echo=FALSE}
+```{r 17,echo=FALSE}
 LR_model_2 <- lm(trueskill_mu ~ trueskill_sigma + gold + deaths + assists + last_hits + hero_healing  + xp_other,data=Combined_LR_2)
 summary(LR_model_2)
 ```
 
 Now we have obtained a model where most variables are significant. 
 
-```{r 15, echo=FALSE}
+```{r 18, echo=FALSE}
 plot(LR_model_2)
 ```
 
@@ -348,8 +338,15 @@ Logistic regression is used to predict the probability of radiant or dire team w
 
 Before performing logistic regression, a correlation plot was generated.
 
-```{r 16,echo=FALSE}
-Combined_LogR_2_cor <- cor(Combined_LogR_2[,-c(1,2,18:21,28:30)])
+```{r 19,echo=FALSE}
+Combined_LogR_2 <- read.csv("Data/Combined_LogR_2.csv")
+
+    # Find variables that are correlated
+Combined_LogR_2_cor <- cor(Combined_LogR_2)
+
+        # Below code was taken from https://codedump.io/share/BSdmR40dKSWs/1/how-to-change-font-size-of-the-correlation-coefficient-in-corrplot 
+        # since font size of corrplot without these changes was too big and not clear 
+
 corrplot(Combined_LogR_2_cor,method="color",insig="blank",addCoef.col = "grey",order="AOE",cl.cex=0.5,tl.cex = 0.5,addCoefasPercent = TRUE,number.cex = 0.5)
 
 ```
@@ -358,7 +355,7 @@ corrplot(Combined_LogR_2_cor,method="color",insig="blank",addCoef.col = "grey",o
 
 radiant_win was predicted after removing all correlated variables. Following output was obtained.
 
-```{r 17,echo=FALSE}
+```{r 20,echo=FALSE}
 LogR_Train <- read.csv("Data/LogR_Train.csv")
 LogR_model <- glm(radiant_win ~ gold + kills + deaths + denies + last_hits + stuns + hero_healing + tower_damage + xp_other + gold_other + trueskill_mu + trueskill_var + Class_STR + Class_AGI + Class_INT + duration + first_blood_time + cluster,LogR_Train,family=binomial)
 summary(LogR_model)
@@ -370,7 +367,7 @@ Output again shows that hero choice is not statistically significant. Even playe
 
 All variables that were not statistically significant in the first logistic regression model were removed and the second model was built.
 
-```{r 18, echo=FALSE}
+```{r 21, echo=FALSE}
 LogR_model_1 <- glm(radiant_win ~ gold + kills + deaths + last_hits + hero_healing + tower_damage + duration,LogR_Train,family=binomial)
 summary(LogR_model_1)
 ```
@@ -379,7 +376,7 @@ Very high AIC shows that this model is also not very useful for drawing larger c
 
 #### Accuracy of second LogR model
 
-```{r 19,echo=FALSE}
+```{r 22,echo=FALSE}
 pred_LogR_model_Train <- predict(object=LogR_model_1,type="response")
 tapply(pred_LogR_model_Train,LogR_Train$radiant_win,mean)
 table(LogR_Train$radiant_win,pred_LogR_model_Train>=0.5)
@@ -391,7 +388,10 @@ Model accuracy using the training set comes out to (10368 + 23840)/(10368+20366+
 
 Decision tree model is used to predict the probability of radiant or dire teams winning.
 
-```{r 20,echo=FALSE}
+```{r 23,echo=FALSE}
+Combined_Tree_Train <- read.csv("Data/Combined_Tree_Train.csv")
+Combined_Tree_Test <- read.csv("Data/Combined_Tree_Test.csv")
+
 # Build model
 Combined_Tree_Model <- rpart(radiant_win ~  .,Combined_Tree_Train,method="class",control=rpart.control(minbucket = 25))
 
@@ -402,7 +402,7 @@ prp(Combined_Tree_Model)
 
 #### Cross Validate decision tree
 
-```{r 21,echo=FALSE}
+```{r 24,echo=FALSE}
 # Cross validate tree
     # First find optimal cp value
 fitControl <- trainControl(method="cv",number=10)

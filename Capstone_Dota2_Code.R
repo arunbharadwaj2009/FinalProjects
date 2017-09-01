@@ -378,9 +378,13 @@ association_data$A <- NULL
 association_data1 <- association_data
 association_data1$Class <- NULL
 
+# Export association_data1 for markdown
+write.csv(association_data1,"association_data1.csv")
+
     # Convert characters to factors
 association_data1 <- sapply(association_data1,as.factor)
 
+    
     # Convert to itemMatrix after removing Class column 
     # since we do not want Class column in frequency plot
 association_data1 <- as.data.frame(association_data1)
@@ -543,14 +547,13 @@ Combined_LogR_1 <- Combined_LogR %>% group_by(match_id,player_slot) %>% summaris
 
     # Now combine Combined_LogR_1 and match_csv
 Combined_LogR_2 <- inner_join(Combined_LogR_1,match_csv,by="match_id")
-
+Combined_LogR_2 <- Combined_LogR_2[,-c(1,2,18:21,28:30)]
     # Export Combined_LogR_2 for markdown
 write.csv(Combined_LogR_2,"Combined_LogR_2.csv")
 
     # Find variables that are correlated
-Combined_LogR_2_cor <- cor(Combined_LogR_2[,-c(1,2,18:21,28:30)])
-
-        # Below code was taken from https://codedump.io/share/BSdmR40dKSWs/1/how-to-change-font-size-of-the-correlation-coefficient-in-corrplot 
+ Combined_LogR_2_cor <- cor(Combined_LogR_2)
+       # Below code was taken from https://codedump.io/share/BSdmR40dKSWs/1/how-to-change-font-size-of-the-correlation-coefficient-in-corrplot 
         # since font size of corrplot without these changes was too big and not clear 
 
 corrplot(Combined_LogR_2_cor,method="color",insig="blank",addCoef.col = "grey",order="AOE",cl.cex=0.5,tl.cex = 0.5,addCoefasPercent = TRUE,number.cex = 0.5)
