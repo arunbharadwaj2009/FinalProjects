@@ -60,19 +60,19 @@ match_csv, player_rating_csv and players_csv are the 3 most important csv files.
 match_csv contains high level information about each match including duration, time to first blood, status of tower and barracks of two teams at end of game, geographical region where the game is taking place and the team that won the game (radiant or dire).
 ```{r 1,echo=FALSE}
 match_csv <- read.csv("Data/match.csv")
-head(match_csv)
+str(match_csv)
 ```
 
 player_ratings_csv has information about all the human players who played the 50,000 games. The information includes player account_id, total games they have played, total games in which they were a part of the winning team, mean of player skill and standard deviation of player skill. Player skill level and their standard deviation have been calculated using Microsoft Research`s trueskill algorithm, which is widely used in the gaming world. Valve Corporation is not involved in the way player skill is calculated. So, the player skill mean and standard deviation columns have to be cross checked for accuracy.
 ```{r 2,echo=FALSE}
 player_ratings_csv <- read.csv("Data/player_ratings.csv")
-head(player_ratings_csv)
+str(player_ratings_csv)
 ```
 
 players_csv has specific information about each match, player account_id that participated in the match, hero_id of the hero used by the player, gold earned and spent, xp earned, deaths, kills, assists, stuns and last hits per hero. It also gives detailed information about gold extracted from killing creeps, killing other heroes and destroying buildings.  
 ```{r 3,echo=FALSE}
 players_csv <- read.csv("Data/players.csv")
-head(players_csv)
+str(players_csv)
 ```
 
 # Data Wrangling
@@ -122,7 +122,7 @@ Human players that have played less than 5 games of Dota are poor predictors of 
 # Exploratory Data Analysis
 
 ## Hero Stats
-players_csv has detailed information about the player, the hero they chose and their in-game performance. This information is grouped by hero class, which are STR/INT/AGI. Further, all stats are normalized such that a particular stat of STR hero plus AGI hero plus INT hero equals one. This operation allows us to view all stats on a single heatmap. The code and the heatmap is shown below
+players_csv has detailed information about the player, the hero they chose and their in-game performance. This information is grouped by hero class, which are STR/INT/AGI. Further, all stats are normalized such that a particular stat of STR hero plus AGI hero plus INT hero equals one. This operation allows us to view all stats on a single heatmap. The heatmap is shown below
 ```{r 4,echo=FALSE}
 Scaled_Stats_by_hero_type_m <- read.csv("Data/Scaled_Stats_by_hero_type_m.csv")
 
@@ -289,7 +289,7 @@ STR hero rules have a highest rule confidence of only 0.75.
 
 # Machine Learning
 
-Linear regression, logistic regression and decision tree is used in the machine learning part of the capstone project. Linear regression was used to predict numeric values of trueskill_mu. Logistic regression was used to predict the probability of radiant or dire teams. Finally, a decision tree or CART is used to perform the same prediction as the logistic regression.  
+Linear regression, logistic regression and decision tree is used in the machine learning part of the capstone project. Linear regression was used to predict numeric values of trueskill_mu. Logistic regression was used to predict the probability of radiant or dire teams winning. Finally, a decision tree or CART is used to perform the same prediction as the logistic regression.  
 
 ## Linear Regression (LR)
 
@@ -319,7 +319,7 @@ Output shows a very low R^2 value for the model. Also, the player`s team choice 
 
 ### Second LR model 
 
-All variables that were statistically not significant in the first LR model were removed and the second model was built. FOllowing output was obtained. 
+All variables that were statistically not significant in the first LR model were removed and the second model was built. Following output was obtained. 
 
 ```{r 17,echo=FALSE}
 LR_model_2 <- lm(trueskill_mu ~ trueskill_sigma + gold + deaths + assists + last_hits + hero_healing  + xp_other,data=Combined_LR_2)
@@ -386,11 +386,11 @@ tapply(pred_LogR_model_Train,LogR_Train$radiant_win,mean)
 table(LogR_Train$radiant_win,pred_LogR_model_Train>=0.5)
 ```
 
-Model accuracy using the training set comes out to (10368 + 23840)/(10368+20366+9302+23840), which equals 53.5%.
+Model accuracy using the training set equals 53.5%.
 
 ## Decision Tree
 
-Decision tree model is used to predict the probability of radiant or dire teams winning.
+Decision tree model is used to predict the probability of radiant(1) or dire(0) teams winning.
 
 ```{r 23,echo=FALSE}
 Combined_Tree <- read.csv("Data/Combined_Tree.csv")
@@ -435,7 +435,7 @@ Combined_Tree_Model_CP_Predict <- predict(object=Combined_Tree_Model_CP,newdata=
 table(Combined_Tree_Test$radiant_win,Combined_Tree_Model_CP_Predict)
 
 ```
-Final decision tree model gives an accuracy of (10466+12635)/(10466+2706+1569+12635), which equals 84.4%, substantially higher than the logistic regression.
+Final decision tree model gives an accuracy of 87.7%, substantially higher than the logistic regression.
 
 # Conclusions
 
@@ -445,7 +445,7 @@ Results from the capstone project show that
 
 2) The act of team selection alone makes no difference to the probability of winning. This is inferred from the fact that radiant and dire variables are not statistically significant in the logistic regression model.
 
-3) Teams with >= 3 INT heroes have substantially higher probabilities of winning, followed by STR heroes. Team with >= 3 AGI heroes are at a very high disadvantage.
+3) Teams with >= 3 win substantially higher number of games, followed by STR heroes.
 
 4) trueskill_sigma variable is not used as a splitter variable in the decision tree. Similarly, in the scatter plot between trueskill_mu and percentage_wins where trueskill_sigma is used as color variable, the trueskill_sigma variable has some prominence in the lower left corner and upper right corner of the plot. Overall, there is no perceivable shape for trueskill_sigma in the scatter plot. 
 
@@ -453,10 +453,10 @@ Results from the capstone project show that
 
 # Some recommendations
 
-1) Given that duration is a significant variable in the logistic regression and is used twice as a splitter variable in the decision tree, it is important to ensure that game duration has no impact on game outcome. Logistic regression shows that duration has a negative co-efficient. So, lower duration games decrease radiant team`s probability of winning, giving dire teams an advantage. Instituting a bonus for radiant  teams in longer duration games can help overcome this bias.
+1) Given that duration is a significant variable in the logistic regression and is used as a splitter variable in the decision tree, it is important to ensure that game duration has no impact on game outcome. Logistic regression shows that duration has a negative co-efficient. So, lower duration games decrease radiant team`s probability of winning, giving dire teams an advantage. Instituting a bonus for radiant  teams in shorter duration games can help overcome this bias.
 
-2) trueskill_sigma is not a splitter variable in the decision tree. trueskill_sigma does not have an impact on the scatter plot between trueskill_mu and percentage_wins. Interestingly, trueskill_sigma is significant in the linear regression where trueskill_mu is the predictor. It has a negative co-efficient, showing that higher sigma lowers trueskill_mu. The trueskill algorithm requires review in the context of Dota 2. 
+2) trueskill_sigma is not a splitter variable in the decision tree. trueskill_sigma does not have an impact on the scatter plot between trueskill_mu and percentage_wins. trueskill_sigma is only significant in the linear regression where trueskill_mu is the predictor. The trueskill algorithm requires review in the context of Dota 2. 
 
-3) Teams with >=3 AGI heroes are at a significant disadvantage. A relook into the metrics of AGI heroes will be useful.
+3) Teams with >=3 AGI heroes seem to be at a significant disadvantage. A relook into the metrics of AGI heroes will be useful.
 
 
