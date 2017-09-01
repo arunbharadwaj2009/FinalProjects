@@ -2,7 +2,9 @@
 title: "Springboard Foundations of Data Science - Capstone Final Report"
 author: "Arun Bharadwaj"
 date: "August 31, 2017"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -445,7 +447,7 @@ Results from the capstone project show that
 
 2) The act of team selection alone makes no difference to the probability of winning. This is inferred from the fact that radiant and dire variables are not statistically significant in the logistic regression model.
 
-3) Teams with >= 3 win substantially higher number of games, followed by STR heroes.
+3) Teams with >= 3 INT heroes win substantially higher number of games, followed by STR heroes.
 
 4) trueskill_sigma variable is not used as a splitter variable in the decision tree. Similarly, in the scatter plot between trueskill_mu and percentage_wins where trueskill_sigma is used as color variable, the trueskill_sigma variable has some prominence in the lower left corner and upper right corner of the plot. Overall, there is no perceivable shape for trueskill_sigma in the scatter plot. 
 
