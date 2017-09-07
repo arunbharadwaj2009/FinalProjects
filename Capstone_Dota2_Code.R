@@ -322,6 +322,18 @@ write.csv(Prob_Hero_Winning,file="Prob_Hero_Winning.csv")
 
 # Team hero combinations and winnability
 
+# Find total number of instances when a team had >=3 STR, >=3 AGI or >=3 INT heroes
+
+total_instances_greater_than_3 <- players_csv3 %>% mutate(R_STR=case_when(Class=="STR" & player_slot=="Radiant" ~1),R_AGI=case_when(Class=="AGI" & player_slot == "Radiant" ~1),R_INT=case_when(Class=="INT" & player_slot == "Radiant" ~1),D_STR=case_when(Class=="STR" & player_slot == "Dire" ~1),D_AGI=case_when(Class=="AGI" & player_slot == "Dire" ~1),D_INT=case_when(Class=="INT" & player_slot == "Dire" ~1)) 
+
+total_instances_greater_than_3_1 <- total_instances_greater_than_3 %>% group_by(match_id) %>% summarise(n_R_STR=sum(R_STR,na.rm=TRUE),n_R_AGI=sum(R_AGI,na.rm=TRUE),n_R_INT=sum(R_INT,na.rm=TRUE),n_D_STR=sum(D_STR,na.rm=TRUE),n_D_AGI=sum(D_AGI,na.rm=TRUE),n_D_INT=sum(D_INT,na.rm=TRUE))
+
+total_STR_greater_than_3 <- nrow(total_instances_greater_than_3_1 %>% filter(n_R_STR >=3 | n_D_STR >= 3))
+
+total_AGI_greater_than_3 <- nrow(total_instances_greater_than_3_1 %>% filter(n_R_AGI >=3 | n_D_AGI >= 3))
+
+total_INT_greater_than_3 <- nrow(total_instances_greater_than_3_1 %>% filter(n_R_INT >=3 | n_D_INT >= 3))
+
 ## For sake of simplicity find out number of wins by teams that have >= 3 STR or >= 3 AGI or >= 3 INT heroes. 
 ## Find out which of these 3 combinations has highest winnability
 ## This is done by first performing mutate on players_csv3 using 3 new columns called STR_1, AGI_1 and INT_1
@@ -360,6 +372,16 @@ Team_Hero_Winning <- c(sum_n_STR_winning,sum_n_AGI_winning,sum_n_INT_winning)
 write.csv(Team_Hero_Winning,file="Team_Hero_Winning.csv")
 
 barplot(Team_Hero_Winning,main="Total team wins where team had >=3 heros of same type",names.arg = c("STR","AGI","INT"))
+
+# Find probability of winning when a team has >=3 STR, >=3 AGI or >=3 INT heroes
+
+prob_STR_greaterthan3_winning <- sum_n_STR_winning/total_STR_greater_than_3
+prob_AGI_greaterthan3_winning <- sum_n_AGI_winning/total_AGI_greater_than_3
+prob_INT_greaterthan3_winning <- sum_n_INT_winning/total_INT_greater_than_3
+
+Prob_Hero_Winning_Greaterthan3 <- c(prob_STR_greaterthan3_winning,prob_AGI_greaterthan3_winning,prob_INT_greaterthan3_winning)
+
+barplot(Prob_Hero_Winning_Greaterthan3,main="Prob of winning where team had >=3 heros of same type",names.arg = c("STR","AGI","INT"))
 
 # Market basket analysis or association rules
 
@@ -620,6 +642,28 @@ table(LogR_Train$radiant_win,pred_LogR_model_Train>=0.5)
 LogR_ROCR_Predict <- prediction(pred_LogR_model_Train,LogR_Train$radiant_win)
 LogR_ROCR_Perf <- performance(LogR_ROCR_Predict,"tpr","fpr")
 plot(LogR_ROCR_Perf,colorize=TRUE)
+
+# Another logistic regression that uses >=3 STR, >=3 AGI or >=3 INT as a binary variable
+
+Combined_LogR_Greaterequal3 <- total_instances_greater_than_3_1 
+
+Combined_LogR_Greaterequal3_1 <- inner_join(Combined_LogR_Greaterequal3,match_csv,by="match_id")
+
+Combined_LogR_Greaterequal3_2 <- Combined_LogR_Greaterequal3_1[,-c(1,8:14,16:17)] 
+
+Combined_LogR_Greaterequal3_3 <- Combined_LogR_Greaterequal3_2 %>% mutate(radiant_win=case_when(radiant_win=="True"~1,radiant_win=="False"~0))
+
+Combined_LogR_Greaterequal3_4 <- Combined_LogR_Greaterequal3_3 %>% mutate(n_R_STR=case_when(n_R_STR>=3~1),n_R_AGI=case_when(n_R_AGI>=3~1),n_R_INT=case_when(n_R_INT>=3~1),n_D_STR=case_when(n_D_STR>=3~1),n_D_AGI=case_when(n_D_AGI>=3~1),n_D_INT=case_when(n_D_INT>=3~1))
+
+Combined_LogR_Greaterequal3_4[is.na(Combined_LogR_Greaterequal3_4)] <- 0
+
+# Export Combined_LogR_Greaterequal3_4 for markdown
+
+write.csv(Combined_LogR_Greaterequal3_4,"Combined_LogR_Greaterequal3_4.csv")
+
+LogR_Greaterequal3_model <- glm(radiant_win~.,data=Combined_LogR_Greaterequal3_4,family = binomial)
+
+summary(LogR_Greaterequal3_model)
 
 # Decision tree to predict probability of winning of radiant or dire teams
 set.seed(200)
