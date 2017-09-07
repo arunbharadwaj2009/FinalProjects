@@ -3,8 +3,8 @@ title: "Springboard Foundations of Data Science - Capstone Final Report"
 author: "Arun Bharadwaj"
 date: "August 31, 2017"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -132,6 +132,8 @@ ggplot(Scaled_Stats_by_hero_type_m, aes(x=Var1,y=Var2,fill=value)) + geom_tile()
 
 ```
 
+From the heatmap, it can be seen that, on an absolute basis, INT heroes heal the most, AGI heroes cause maximum tower damage, STR heroes cause highest stuns and AGI heroes have highest last hits.
+
 ## Percentage of Wins
 While total_wins is available for each account_id, simply looking at total_wins is inadequate. More accurate is to look at percentage_wins. This is possible since we know both total_wins and total_matches.
 
@@ -139,13 +141,15 @@ Using this metric, we plot a histogram of percentage of wins. Highest occurence 
 
 ```{r 5,echo=FALSE}
 
-players_ratings_csv2 <- read.csv("Data/players_ratings_csv2.csv")
+player_ratings_csv2 <- read.csv("Data/player_ratings_csv2.csv")
 
 # Histogram line plot of percentage_wins statistic by player account_id. Most players win half the games they play.
 
-ggplot(players_ratings_csv2,aes(percentage_wins)) +geom_histogram(aes(y=..density..)) + geom_density(aes(y=..density..))
+ggplot(player_ratings_csv2,aes(percentage_wins)) +geom_histogram(aes(y=..density..)) + geom_density(aes(y=..density..))
 
 ```
+
+Moreover, an even larger proportion of players win between 40-60% of the games they play.
 
 ## Correlation between trueskill_mu and percentage_wins
 trueskill_mu is a Microsoft Research algorithm that measures player skill. To check its accuracy, we correlate it with percentage_wins. Graph shows that higher skill level implies higher win percentage. Since player skill is hard to measure, a standard deviation measure of player ability is included. The different colors of the below dots gives the different standard deviations. 
@@ -155,8 +159,10 @@ trueskill_mu is a Microsoft Research algorithm that measures player skill. To ch
 
 # Scatter plot of trueskill_mu and percentage_wins in players_ratings_csv2. trueskill_sigma is assigned to color attribute. While trueskill_mu is indicator of player`s ability, with higher value implying better player, trueskill_sigma is the uncertainty in the trueskill_mu measure. As expected, skill and win percentage are correlated. 
 
-ggplot(players_ratings_csv2,aes(x=trueskill_mu,y=percentage_wins,col=trueskill_sigma)) +geom_point() + geom_jitter(shape=1)
+ggplot(player_ratings_csv2,aes(x=trueskill_mu,y=percentage_wins,col=trueskill_sigma)) +geom_point() + geom_jitter(shape=1)
 ```
+
+While there is a definite correlation between trueskill_mu and percentage_wins, trueskill_sigma does not have a definite pattern, except for the dark blue shades in the center of the plot and in the top right of the part. 
 
 ## Boxplot of item types and hero levels at end of game
 
@@ -186,11 +192,16 @@ ggplot(item_and_hero_m,aes(x=new,y=value,colour=variable,group=1)) + geom_point(
 
 ```
 
+From the line plot, it can be seen that 2 Class items are most preferred by all hero types. STR heroes have a high preference for Mob (mobility) items. This is obvious since STR heroes tend to be slow moving.  
+
+
 ## Does high median hero level lead to purchase of damage/disable items or does purchase of damage/disable items lead to high median hero level?
 
 The above line graph was obtained after excluding item classes that constituted less than 5% of total observations per hero. Since this filter has excluded damage or disable items, it is obvious that heroes bought standalone damage or disable items less than 5% of the time. If the strategy of buying solely damage or disable items were successfull, it is likely that more players would have chosen to buy standalone damage or disable items. This graph shows that only very few players chose to buy these items. So, it is concluded that only heroes that have already attained high levels buy damage or disable items. Buying damage or disable items cannot be attributed as a reason for high hero level.
 
 ## Identify heroes that win most games
+
+On an absolute basis, INT heroes win the maximum number of games, followed by STR and then AGI heroes. This is true for both team types.
 
 ```{r 9,echo=FALSE}
 players_csv3_winning_heroes_radiant <- read.csv("Data/players_csv3_winning_heroes_radiant.csv")
@@ -207,6 +218,8 @@ INT heroes have won maximum number of games followed by STR heroes. This trend i
 
 ## Identify heroes that have highest probability of winning
 
+STR heroes have highest probability of winning, followed by AGI and then INT. The difference in winning probabilities between the three heroes is negligible. 
+
 ```{r 10,echo=FALSE}
 Prob_Hero_Winning <- read.csv("Data/Prob_Hero_Winning.csv")
 
@@ -214,8 +227,6 @@ barplot(Prob_Hero_Winning$x,main="Probability of winning for each hero type",nam
 
 ```
 
-
-STR heroes have highest probability of winning, followed by AGI and then INT. 
 
 ## Team hero combinations and winnability
 
@@ -233,11 +244,11 @@ Teams that have combination of >=3 INT heroes win more games, followed by teams 
 
 ### Item Frequency Plot
 
-Below plot shows that 2 Class items are the most commonly purchased items. This is followed by miscellaneous, mobility and health. 
+Below plot shows that 2 Class items are the most commonly purchased items. This is followed by miscellaneous, mobility and health. The fact that 2 Class items are bought highest matches the earlier line plot, which showed that all three hero types have very high preference for 2 Class items.
 
 ```{r 12,echo=FALSE}
 
-association_data1 <- read.csv("association_data1.csv")
+association_data1 <- read.csv("Data/association_data1.csv")
 
 association_data1$Class <- NULL
 
