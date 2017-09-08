@@ -668,7 +668,7 @@ write.csv(Combined_LogR_Greaterequal3_4,"Combined_LogR_Greaterequal3_4.csv")
 
 corrplot(cor(Combined_LogR_Greaterequal3_4),method="number")
 
-LogR_Greaterequal3_model <- glm(radiant_win~.,data=Combined_LogR_Greaterequal3_4,family = binomial)
+LogR_Greaterequal3_model <- glm(radiant_win~n_R_STR+n_R_AGI+n_R_INT+n_D_STR+n_D_AGI+n_D_INT,data=Combined_LogR_Greaterequal3_4,family = binomial)
 
 summary(LogR_Greaterequal3_model)
 

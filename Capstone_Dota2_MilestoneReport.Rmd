@@ -1,7 +1,7 @@
 ---
 title: "Springboard Foundations of Data Science - Capstone Final Report"
 author: "Arun Bharadwaj"
-date: "August 31, 2017"
+date: "September 7, 2017"
 output:
   html_document: default
   pdf_document: default
@@ -162,7 +162,7 @@ trueskill_mu is a Microsoft Research algorithm that measures player skill. To ch
 ggplot(player_ratings_csv2,aes(x=trueskill_mu,y=percentage_wins,col=trueskill_sigma)) +geom_point() + geom_jitter(shape=1)
 ```
 
-While there is a definite correlation between trueskill_mu and percentage_wins, trueskill_sigma does not have a definite pattern, except for the dark blue shades in the center of the plot and in the top right of the part. 
+While there is a definite correlation between trueskill_mu and percentage_wins, trueskill_sigma does not have a definite pattern, except for the dark blue shades in the center of the plot and in the top right of the plot. 
 
 ## Boxplot of item types and hero levels at end of game
 
@@ -243,7 +243,7 @@ Teams that have combination of >=3 INT heroes win more games, followed by teams 
 ```{r 11.1, echo=FALSE}
 Prob_Hero_Winning_Greaterthan3 <- read.csv("Data/Prob_Hero_Winning_greaterthan3.csv")
 
-barplot(Prob_Hero_Winning_Greaterthan3,main="Prob of winning where team had >=3 heros of same type",names.arg = c("STR","AGI","INT"))
+barplot(Prob_Hero_Winning_Greaterthan3$x,main="Prob of winning where team had >=3 heros of same type",names.arg = c("STR","AGI","INT"))
 
 ```
 
@@ -309,7 +309,7 @@ inspect(rules1[1:10])
 
 ```
 
-STR hero rules have a highest rule confidence of only 0.75.
+STR hero rules have highest rule confidence of only 0.75.
 
 # Machine Learning
 
@@ -416,13 +416,13 @@ Model accuracy using the training set equals 53.5%.
 
 ### Third LogR model
 
-A third logistic regression model uses radiant_win as the dependant variable and >=3 STR (radiant), >=3 STR (dire), >= 3 AGI (radiant), >= 3 AGI (dire), >= 3 INT (radiant), >= 3 INT (dire) as binary independant variables. This dataset is taken for all 50000 matches where radiant_win is 1, for radiant winning and 0, for dire winning. If the radiant team has used >=3 STR heroes, the n_R_STR variable is assigned 0. Similarly for other 5 variables.
+A third logistic regression model uses radiant_win as the dependant variable and >=3 STR (radiant), >=3 STR (dire), >= 3 AGI (radiant), >= 3 AGI (dire), >= 3 INT (radiant), >= 3 INT (dire) as binary independant variables. This dataset is taken for all 50000 matches where radiant_win is 1, for radiant winning and 0, for dire winning. If the radiant team has used >=3 STR heroes, the n_R_STR variable is assigned 1, else 0. Similarly for other 5 variables.
 
 ```{r 22.1,echo=FALSE}
 
 Combined_LogR_Greaterequal3_4 <- read.csv("Data/Combined_LogR_Greaterequal3_4.csv")
 
-LogR_Greaterequal3_model <- glm(radiant_win~.,data=Combined_LogR_Greaterequal3_4,family = binomial)
+LogR_Greaterequal3_model <- glm(radiant_win~n_R_STR+n_R_AGI+n_R_INT+n_D_STR+n_D_AGI+n_D_INT,data=Combined_LogR_Greaterequal3_4,family = binomial)
 
 summary(LogR_Greaterequal3_model)
 
