@@ -24,7 +24,11 @@ library(datasets)
 match_csv <- read_csv("match.csv")
 chat_csv <- read_csv("chat.csv")
 cluster_regions_csv <- read_csv("cluster_regions.csv")
+
+
+# Please use https://drive.google.com/drive/folders/0Bz5j9I030B03Nlk4V180b01GcVE (markdown data files google drive) to download Detailed_Heroes.csv
 Detailed_Heroes <- read_csv("Detailed_Heroes.csv")
+
 purchase_log_csv <- read_csv("purchase_log.csv")
 players_csv <- read_csv("players.csv")
 objectives_csv <- read_csv("objectives.csv")
@@ -32,6 +36,7 @@ player_ratings_csv <- read_csv("player_ratings.csv")
 
 # Please use https://drive.google.com/drive/folders/0Bz5j9I030B03Nlk4V180b01GcVE (markdown data files google drive) to download item_class_1.csv
 item_class_1 <- read_csv("item_class_1.csv")
+
 item_ids_csv <- read_csv("item_ids.csv")
 
 ## Data Wrangling
