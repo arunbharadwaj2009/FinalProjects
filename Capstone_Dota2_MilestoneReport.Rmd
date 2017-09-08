@@ -238,7 +238,16 @@ barplot(Team_Hero_Winning$x,main="Total team wins where team had >=3 heroes of s
 ```
 
 
-Teams that have combination of >=3 INT heroes win more games, followed by teams that have combination of >= 3 STR heroes.
+Teams that have combination of >=3 INT heroes win more games, followed by teams that have combination of >= 3 STR heroes. It is inadequate to look at the absolute number of games won by teams that have multiple heroes of same type since it is possible that higher wins for teams with >=3 INT heroes maybe due to the fact that many more teams choose combination of >= 3 INT heroes. So, the probability of a team winning, when it has >= 3 INT, >= 3 STR or >= 3 AGI heroes is calculated.
+
+```{r 11.1, echo=FALSE}
+Prob_Hero_Winning_Greaterthan3 <- read.csv("Data/Prob_Hero_Winning_greaterthan3.csv")
+
+barplot(Prob_Hero_Winning_Greaterthan3,main="Prob of winning where team had >=3 heros of same type",names.arg = c("STR","AGI","INT"))
+
+```
+
+Above plot shows that teams which pick >= 3 STR heroes have a higher probability of winning, followed by teams that pick >= 3 AGI heroes. This topic is further explored in the logistic regression area of the project.
 
 ## Association rules between hero type and item purchase
 
@@ -267,6 +276,8 @@ itemFrequencyPlot(association_data1,topN=15,type="absolute")
 
 
 ### General rule output
+
+Association rules are most commonly used by the retail industry. They show the probability of a person buying item X, if they previously bought item Y in the same trip. For the capstone project, association rules are used to analyze the items purchased by STR, AGI and INT heroes.
 
 ```{r 13,echo=FALSE}
 # New itemMatrix which includes Class column since for 
@@ -347,6 +358,8 @@ plot(LR_model_2)
 
 Residuals versus Fitted plot has some correlation between the two variables, shown by the parabolic shape of the curve.Normal Q-Q plot shows that residuals are normally distributed, based on the plot`s straight line curve.Square root standardized residuals versus fitted plot also has some correlation between the two variables.
 
+It can be concluded that the linear regression is neither a great nor a bad model. It is a mediocre model with some flaws.
+
 ## Logistic Regression (LogR)
 
 Logistic regression is used to predict the probability of radiant or dire team winning. To do so, the data is grouped by match_id and player_slot and all the columns are summarised by taking the sum of all column observations.
@@ -401,9 +414,32 @@ table(LogR_Train$radiant_win,pred_LogR_model_Train>=0.5)
 
 Model accuracy using the training set equals 53.5%.
 
+### Third LogR model
+
+A third logistic regression model uses radiant_win as the dependant variable and >=3 STR (radiant), >=3 STR (dire), >= 3 AGI (radiant), >= 3 AGI (dire), >= 3 INT (radiant), >= 3 INT (dire) as binary independant variables. This dataset is taken for all 50000 matches where radiant_win is 1, for radiant winning and 0, for dire winning. If the radiant team has used >=3 STR heroes, the n_R_STR variable is assigned 0. Similarly for other 5 variables.
+
+```{r 22.1,echo=FALSE}
+
+Combined_LogR_Greaterequal3_4 <- read.csv("Data/Combined_LogR_Greaterequal3_4.csv")
+
+LogR_Greaterequal3_model <- glm(radiant_win~.,data=Combined_LogR_Greaterequal3_4,family = binomial)
+
+summary(LogR_Greaterequal3_model)
+
+```
+
+Logistic regression shows that all 6 variables are statistically significant. n_R_STR`s positive co-efficient shows that a radiant team having >=3 STR heroes increases its chances of winning. n_D_STR has a negative co-efficient, implying that  when dire teams choose >=3 STR heroes, the chances of radiant team winning decreases. 
+
+It maybe noted that the third logistic regression model had a substantially lower AIC (69096), compared to the first (87963) and second (87952) logistic regression models. Lower AIC implies better model. So, the variables relating to >= 3 hero types seem to predict probability of winning better than the variables used in the first and second logistic regression models.
+
+
 ## Decision Tree
 
-Decision tree model is used to predict the probability of radiant(1) or dire(0) teams winning.
+Decision tree model is used to predict the probability of radiant(1) or dire(0) teams winning. The distinctive branches can be interpreted as follows: if a dire team has gold >= 11000 and if the game duration did not exceed 2054, the dire team is more likely to win the game. This rule stays the same for a radiant team also. 
+
+If a radiant team had tower damage < 2082, did not have gold >= 11000, game duration was not >= 2054, then team dire is more likely to win that game. 
+
+All leaves to the left of a splitter variable are YES and those to the right of a splitter variables are NO. This is similar to the YES and NO shown on the duration splitter at the very top of the decision tree.
 
 ```{r 23,echo=FALSE}
 Combined_Tree <- read.csv("Data/Combined_Tree.csv")
@@ -429,6 +465,7 @@ Combined_Tree_Model <- rpart(radiant_win ~  .,Combined_Tree_Train,method="class"
 prp(Combined_Tree_Model)
 
 ```
+
 
 #### Cross Validate decision tree
 
@@ -458,7 +495,7 @@ Results from the capstone project show that
 
 2) The act of team selection alone makes no difference to the probability of winning. This is inferred from the fact that radiant and dire variables are not statistically significant in the logistic regression model.
 
-3) Teams with >= 3 INT heroes win substantially higher number of games, followed by STR heroes.
+3) The collective act of team selection is statistically significant when >= 3 heroes of the same type are chosen. This is especially true for STR heroes.  
 
 4) trueskill_sigma variable is not used as a splitter variable in the decision tree. Similarly, in the scatter plot between trueskill_mu and percentage_wins where trueskill_sigma is used as color variable, the trueskill_sigma variable has some prominence in the lower left corner and upper right corner of the plot. Overall, there is no perceivable shape for trueskill_sigma in the scatter plot. 
 
@@ -470,6 +507,6 @@ Results from the capstone project show that
 
 2) trueskill_sigma is not a splitter variable in the decision tree. trueskill_sigma does not have an impact on the scatter plot between trueskill_mu and percentage_wins. trueskill_sigma is only significant in the linear regression where trueskill_mu is the predictor. The trueskill algorithm requires review in the context of Dota 2. 
 
-3) Teams with >=3 AGI heroes seem to be at a significant disadvantage. A relook into the metrics of AGI heroes will be useful.
+3) Teams with >=3 STR heroes seem to be at a significant advantage. A relook into this aspect might be useful to building a fairer Dota 2.
 
 

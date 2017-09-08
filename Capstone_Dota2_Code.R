@@ -29,6 +29,8 @@ purchase_log_csv <- read_csv("purchase_log.csv")
 players_csv <- read_csv("players.csv")
 objectives_csv <- read_csv("objectives.csv")
 player_ratings_csv <- read_csv("player_ratings.csv")
+
+# Please use https://drive.google.com/drive/folders/0Bz5j9I030B03Nlk4V180b01GcVE (markdown data files google drive) to download item_class_1.csv
 item_class_1 <- read_csv("item_class_1.csv")
 item_ids_csv <- read_csv("item_ids.csv")
 
@@ -381,6 +383,9 @@ prob_INT_greaterthan3_winning <- sum_n_INT_winning/total_INT_greater_than_3
 
 Prob_Hero_Winning_Greaterthan3 <- c(prob_STR_greaterthan3_winning,prob_AGI_greaterthan3_winning,prob_INT_greaterthan3_winning)
 
+# Export Prob_Hero_Winning_Greaterthan3 for markdown
+write.csv(Prob_Hero_Winning_Greaterthan3,file="Prob_Hero_Winning_Greaterthan3.csv")
+
 barplot(Prob_Hero_Winning_Greaterthan3,main="Prob of winning where team had >=3 heros of same type",names.arg = c("STR","AGI","INT"))
 
 # Market basket analysis or association rules
@@ -660,6 +665,8 @@ Combined_LogR_Greaterequal3_4[is.na(Combined_LogR_Greaterequal3_4)] <- 0
 # Export Combined_LogR_Greaterequal3_4 for markdown
 
 write.csv(Combined_LogR_Greaterequal3_4,"Combined_LogR_Greaterequal3_4.csv")
+
+corrplot(cor(Combined_LogR_Greaterequal3_4),method="number")
 
 LogR_Greaterequal3_model <- glm(radiant_win~.,data=Combined_LogR_Greaterequal3_4,family = binomial)
 
