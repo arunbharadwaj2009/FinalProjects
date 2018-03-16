@@ -30,3 +30,6 @@ Repository contains : Project proposal (includes initial code) and Bokeh Visuali
 
 Link to original source data - https://blog.thedataincubator.com/2017/04/just-capital-and-data-incubator-challenge/
 
+4) Language identification using european parliament dataset
+
+Repository contains : Code and brief write-up
